@@ -60,7 +60,7 @@ body {
 .btn-hd.primary { background: var(--text); color: #fff; border-color: var(--text); }
 .btn-hd.primary:active { opacity: 0.8; }
 
-/* ── 주기 탐색 네비게이션 바 (새로 추가) ── */
+/* NAVIGATION BAR */
 .nav-bar {
   display: flex; align-items: center; justify-content: space-between;
   background: #f0f0ec; padding: 8px 16px; border-bottom: 0.5px solid var(--border);
@@ -95,14 +95,14 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 }
 .rl.emo { background: #fdf6e3; color: #a07030; }
 
-.cycle-sep td { background: #e8e8e4; font-size: 11px; color: var(--text); padding: 6px 0; font-weight: 500; }
+.cycle-sep td { background: #f0f0ec; font-size: 11px; color: var(--text-muted); padding: 4px 0; }
 .cycle-sep .sep-label {
-  position: sticky; left: 0; z-index: 12; background: #decba5; text-align: left;
-  padding: 6px 8px; font-size: 12px; font-weight: 500; color: #5c4314;
+  position: sticky; left: 0; z-index: 12; background: #e8e8e4; text-align: left;
+  padding: 6px 8px; font-size: 12px; font-weight: 500; color: var(--text);
   border-right: 1.5px solid var(--border-strong); cursor: pointer;
 }
 
-.th-d { width: var(--cell); min-width: var(--cell); font-size: 10px; color: var(--text-muted); background: #e8e8e4; }
+.th-d { width: var(--cell); min-width: var(--cell); font-size: 10px; color: var(--text-light); background: #f0f0ec; }
 .td-date { width: var(--cell); font-size: 9px; color: var(--text-muted); height: 22px; background: #fafaf8; }
 .td-rec  { width: var(--cell); height: 42px; cursor: pointer; overflow: hidden; position: relative; }
 .td-rec:active { background: #f5f5f5; }
@@ -116,7 +116,7 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 }
 .td-memo:active { background: #f5f5f5; }
 
-/* 호버 및 터치 시 팝업 툴팁 */
+/* 툴팁 팝업 */
 .td-memo .tooltip {
   display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
   background: rgba(30, 30, 30, 0.9); color: #fff; padding: 6px 10px; border-radius: 6px;
@@ -144,18 +144,21 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 .handle { width: 40px; height: 5px; background: #e0e0e0; border-radius: 2.5px; margin: 12px auto 16px; }
 .panel-title { font-size: 15px; font-weight: 500; margin-bottom: 18px; text-align: center; }
 
-.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-.field-row.one { grid-template-columns: 1fr; }
+/* 개별 하단 입력 세션용 스타일 */
+.input-section { display: none; }
+.input-section.active { display: block; }
+
+.field-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 .field select, .field input {
-  border: 1px solid var(--border-strong); border-radius: 10px; padding: 11px 12px;
+  border: 1px solid var(--border-strong); border-radius: 10px; padding: 12px;
   font-size: 14px; font-family: inherit; background: var(--surface); color: var(--text); width: 100%; outline: none;
   -webkit-appearance: none; appearance: none;
 }
 .field select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+  background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
 }
 .field select:focus, .field input:focus { border-color: var(--text); }
 
@@ -213,36 +216,48 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 <div class="panel" id="rec-panel">
   <div class="handle"></div>
   <div class="panel-title" id="rec-title">기록 편집</div>
-  <div class="field-row">
-    <div class="field">
-      <label>기록 표시</label>
-      <select id="e-type">
-        <option value="none">-</option>
-        <option value="period">🟥 월경</option>
-        <option value="spotting">🔴 피비침</option>
-        <option value="dry">🟩 건조</option>
-        <option value="mucus">🚶 점액</option>
-        <option value="peak">⭐ 피크</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>감정 그래프</label>
-      <select id="e-emo">
-        <option value="">-</option>
-        <option value="up">↑ 좋을 때</option>
-        <option value="down">↓ 우울할 때</option>
-        <option value="right">→ 화날 때</option>
-        <option value="left">← 도망가고 싶을 때</option>
-        <option value="circle">○ 지배적 감정 없음</option>
-      </select>
+  
+  <div class="input-section" id="sec-type">
+    <div class="field-row">
+      <div class="field">
+        <label>기록 표시 선택</label>
+        <select id="e-type">
+          <option value="none">-</option>
+          <option value="period">🟥 월경</option>
+          <option value="spotting">🔴 피비침</option>
+          <option value="dry">🟩 건조</option>
+          <option value="mucus">🚶 점액</option>
+          <option value="peak">⭐ 피크</option>
+        </select>
+      </div>
     </div>
   </div>
-  <div class="field-row">
-    <div class="field">
-      <label>메모</label>
-      <input type="text" id="e-memo" placeholder="점액 상태 및 특이사항 메모..."/>
+
+  <div class="input-section" id="sec-emo">
+    <div class="field-row">
+      <div class="field">
+        <label>감정 상태 선택</label>
+        <select id="e-emo">
+          <option value="">-</option>
+          <option value="up">↑ 좋을 때</option>
+          <option value="down">↓ 우울할 때</option>
+          <option value="right">→ 화날 때</option>
+          <option value="left">← 도망가고 싶을 때</option>
+          <option value="circle">○ 지배적 감정 없음</option>
+        </select>
+      </div>
     </div>
   </div>
+
+  <div class="input-section" id="sec-memo">
+    <div class="field-row">
+      <div class="field">
+        <label>메모 입력 (점액 상태, 느낌 등 자유 기록)</label>
+        <input type="text" id="e-memo" placeholder="내용을 입력하세요..."/>
+      </div>
+    </div>
+  </div>
+
   <button class="btn-save" onclick="saveRec()">저장하기</button>
 </div>
 
@@ -272,7 +287,6 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 </div>
 
 <script>
-// 🔗 보내주신 구글 앱스 크립트 URL 반영 완료!
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwl_xAyqZjOXjGXgODTXqW6rKMED1YEXjcQvJlMLM-8uujCiEIu4-o55p81P065dPz0fQ/exec";
 
 const DAYS = 32;
@@ -289,9 +303,8 @@ const EMO = {
 
 let cycles = [];
 let trash  = [];
-let currentViewIndex = 0; // 현재 화면에 활성화하여 보여줄 주기의 배열 인덱스 번호
-
-let editCi = null, editDi = null, editDateCi = null;
+let currentViewIndex = 0;
+let editCi = null, editDi = null, currentTargetField = null;
 
 function showLoading(show) {
   document.getElementById('loading-bar').style.display = show ? 'block' : 'none';
@@ -308,7 +321,7 @@ async function loadFromCloud() {
     const localData = localStorage.getItem('nfp-v2');
     if (localData) { 
       cycles = JSON.parse(localData); 
-      currentViewIndex = cycles.length - 1; // 기본값은 가장 최신 주기
+      currentViewIndex = cycles.length - 1;
       render(); 
     }
     const localTrash = localStorage.getItem('nfp-v2-trash');
@@ -319,7 +332,7 @@ async function loadFromCloud() {
     if (result.status === "success" && result.data) {
       cycles = result.data;
       localStorage.setItem('nfp-v2', JSON.stringify(cycles));
-      currentViewIndex = cycles.length - 1; // 구글 데이터 받아온 후 가장 최신 주기로 지정
+      currentViewIndex = cycles.length - 1;
       render();
     }
   } catch (e) {
@@ -350,20 +363,15 @@ function updateTrashBtn() {
   else { btn.style.display = 'none'; }
 }
 
-// ── 네비게이션 바 동적 업데이트 (드롭다운 & 화살표) ───────────────
+// ── 네비게이션 바 동적 업데이트 ───────────────────────────────
 function updateNavigationBar() {
   const navZone = document.getElementById('nav-zone');
-  if (cycles.length <= 1) {
-    // 주기가 1개 이하일 때는 네비게이션 창 숨김
-    navZone.style.display = 'none';
-    return;
-  }
+  if (cycles.length <= 1) { navZone.style.display = 'none'; return; }
   navZone.style.display = 'flex';
 
   const select = document.getElementById('select-cycle');
   select.innerHTML = '';
 
-  // 드롭다운 리스트 채우기 (항목명: 주기 시작일자)
   cycles.forEach((c, idx) => {
     const option = document.createElement('option');
     option.value = idx;
@@ -372,7 +380,6 @@ function updateNavigationBar() {
     select.appendChild(option);
   });
 
-  // 화살표 활성/비활성화 처리
   document.getElementById('btn-prev').disabled = (currentViewIndex === 0);
   document.getElementById('btn-next').disabled = (currentViewIndex === cycles.length - 1);
 }
@@ -390,8 +397,9 @@ function selectCycleByDropdown(val) {
   render();
 }
 
-// ── 피크일 자동 계산 엔진 ──────────────────────────────────
+// ── 피크일 자동 계산 엔진 (버그 수정 완료) ───────────────────────
 function getComputedDayType(cycle, index) {
+  if (!cycle || !cycle.days || !cycle.days[index]) return 'none';
   for (let offset = 1; offset <= 3; offset++) {
     const targetIdx = index - offset;
     if (targetIdx >= 0) {
@@ -401,34 +409,34 @@ function getComputedDayType(cycle, index) {
   return cycle.days[index].type || 'none';
 }
 
-// ── 픽토그램 SVG 생성 함수 ───────────────────────────────
+// ── 픽토그램 SVG 렌더링 ────────────────────────────────────
 const humanPath = `<path d="M14,6 C15.1,6 16,5.1 16,4 C16,2.9 15.1,2 14,2 C12.9,2 12,2.9 12,4 C12,5.1 12.9,6 14,6 Z M14,7 C12.5,7 10,7.8 10,9.3 L10,15 C10,15.6 10.4,16 11,16 C11.6,16 12,15.6 12,15 L12,11 L13,11 L13,23 C13,23.6 13.4,24 14,24 C14.6,24 15,23.6 15,23 L15,11 L16,11 L16,15 C16,15.6 16.4,16 17,16 C17.6,16 18,15.6 18,15 L18,9.3 C18,7.8 15.5,7 14,7 Z" fill="#1a1a1a"/>`;
 
 function recSVG(type) {
   if (type==='period')
-    return `<svg width="28" height="36" viewBox="0 0 28 36"><rect width="28" height="36" fill="#E24B4A"/></svg>`;
+    return `<svg width="32" height="42" viewBox="0 0 28 36" style="display:block; width:100%; height:100%;"><rect width="28" height="36" fill="#E24B4A"/></svg>`;
   if (type==='spotting')
-    return `<svg width="28" height="36" viewBox="0 0 28 36"><rect width="28" height="36" fill="#F09595"/><circle cx="14" cy="12" r="2.5" fill="#E24B4A"/><circle cx="14" cy="24" r="2.5" fill="#E24B4A"/></svg>`;
+    return `<svg width="32" height="42" viewBox="0 0 28 36" style="display:block; width:100%; height:100%;"><rect width="28" height="36" fill="#F09595"/><circle cx="14" cy="12" r="2.5" fill="#E24B4A"/><circle cx="14" cy="24" r="2.5" fill="#E24B4A"/></svg>`;
   if (type==='dry')
-    return `<svg width="28" height="36" viewBox="0 0 28 36"><rect width="28" height="36" fill="#1D9E75"/></svg>`;
+    return `<svg width="32" height="42" viewBox="0 0 28 36" style="display:block; width:100%; height:100%;"><rect width="28" height="36" fill="#1D9E75"/></svg>`;
   if (type==='mucus')
-    return `<svg width="28" height="36" viewBox="0 0 28 36"><g transform="translate(0, 5)">${humanPath}</g></svg>`;
+    return `<svg width="32" height="42" viewBox="0 0 28 36" style="display:block; width:100%; height:100%;"><g transform="translate(0, 5)">${humanPath}</g></svg>`;
   if (type==='peak')
-    return `<svg width="28" height="36" viewBox="0 0 28 36"><g transform="translate(0, 2)">${humanPath}</g><path d="M14,22 L16.35,23.24 L15.9,20.62 L17.8,18.77 L15.17,18.39 L14,16 L12.83,18.39 L10.2,18.77 L12.1,20.62 L11.65,23.24 Z" fill="#D4537E"/></svg>`;
+    return `<svg width="32" height="42" viewBox="0 0 28 36" style="display:block; width:100%; height:100%;"><g transform="translate(0, 2)">${humanPath}</g><path d="M14,22 L16.35,23.24 L15.9,20.62 L17.8,18.77 L15.17,18.39 L14,16 L12.83,18.39 L10.2,18.77 L12.1,20.62 L11.65,23.24 Z" fill="#D4537E"/></svg>`;
   if (type==='post1') return postSVG('1');
   if (type==='post2') return postSVG('2');
   if (type==='post3') return postSVG('3');
-  return `<svg width="28" height="36" viewBox="0 0 28 36"></svg>`;
+  return '';
 }
 
 function postSVG(num) {
-  return `<svg width="28" height="36" viewBox="0 0 28 36"><rect width="28" height="36" fill="#A3E4CD"/><g transform="translate(0, 2)">${humanPath}</g><text x="6" y="32" font-size="11" font-weight="bold" fill="#1a1a1a">${num}</text></svg>`;
+  return `<svg width="32" height="42" viewBox="0 0 28 36" style="display:block; width:100%; height:100%;"><rect width="28" height="36" fill="#A3E4CD"/><g transform="translate(0, 2)">${humanPath}</g><text x="6" y="32" font-size="11" font-weight="bold" fill="#1a1a1a">${num}</text></svg>`;
 }
 
 function emoSVG(k) {
   if (!k || !EMO[k]) return '';
   const e = EMO[k];
-  return `<svg width="26" height="30" viewBox="0 0 26 30"><text x="13" y="21" text-anchor="middle" font-size="15" fill="${e.color}">${e.sym}</text></svg>`;
+  return `<svg width="32" height="34" viewBox="0 0 26 30" style="display:block; width:100%; height:100%;"><text x="13" y="21" text-anchor="middle" font-size="15" fill="${e.color}">${e.sym}</text></svg>`;
 }
 
 function graphSVG(days) {
@@ -482,8 +490,6 @@ function isFuture(dateStr, i) {
 // ── Render ───────────────────────────────────────────────
 function render() {
   let html = '';
-  
-  // 네비게이션바 컨트롤 갱신
   updateNavigationBar();
 
   if (cycles.length === 0) {
@@ -492,12 +498,9 @@ function render() {
     return;
   }
 
-  // ⚠️ 중요: 오직 현재 인덱스(currentViewIndex)에 해당하는 주기 1개만 화면에 렌더링 (지나간 기록 숨김처리)
   const cycle = cycles[currentViewIndex];
   const ci = currentViewIndex;
   const sd = cycle.startDate;
-
-  html += `<g id="cycle-block-${ci}">`;
 
   html += `<tr class="cycle-sep">
     <td class="sep-label" onclick="openDateP(${ci})">${sd ? fmtFull(sd) : '날짜 미설정'} ✎</td>`;
@@ -508,39 +511,46 @@ function render() {
   for (let i = 0; i < DAYS; i++) html += `<td class="td-date">${fmt(sd,i)}</td>`;
   html += `</tr>`;
 
+  // 1. 기록 표시 행 (터치 시 기록유형 전용 필드 활성화)
   html += `<tr><td class="rl">기록 표시</td>`;
   for (let i = 0; i < DAYS; i++) {
     const today = isToday(sd, i);
     const future = isFuture(sd, i);
     const cls = today ? ' is-today' : '';
     const computedType = getComputedDayType(cycle, i);
-    html += `<td class="td-rec${cls}" onclick="openRec(${ci},${i})">${future ? '' : recSVG(computedType)}</td>`;
+    html += `<td class="td-rec${cls}" onclick="openFieldPanel(${ci}, ${i}, 'type')">${future ? '' : recSVG(computedType)}</td>`;
   }
   html += `</tr>`;
 
+  // 2. 감정 그래프 행 (터치 시 감정유형 전용 필드 활성화)
   html += `<tr><td class="rl emo">감정 그래프</td>`;
-  for (let i = 0; i < DAYS; i++) html += `<td class="td-emo" onclick="openRec(${ci},${i})">${emoSVG(cycle.days[i].emo)}</td>`;
+  for (let i = 0; i < DAYS; i++) {
+    html += `<td class="td-emo" onclick="openFieldPanel(${ci}, ${i}, 'emo')">${emoSVG(cycle.days[i].emo)}</td>`;
+  }
   html += `</tr>`;
 
+  // 3. 감정선 (자동화)
   html += `<tr>
     <td class="rl emo" style="font-size:10px;">감정선</td>
     <td colspan="${DAYS}" class="td-graph-wrap" style="border-left:0.5px solid var(--border);">${graphSVG(cycle.days)}</td>
   </tr>`;
 
+  // 4. 메모 행 (터치 시 텍스트 전용 필드 활성화)
   html += `<tr><td class="rl">메모</td>`;
   for (let i = 0; i < DAYS; i++) {
     const m = cycle.days[i].memo || '';
-    html += `<td class="td-memo" onclick="toggleTooltip(event, ${ci}, ${i})">
+    html += `<td class="td-memo" onclick="openFieldPanel(${ci}, ${i}, 'memo', event)">
       ${m}
       ${m ? `<div class="tooltip" id="tip-${ci}-${i}">${m}</div>` : ''}
     </td>`;
   }
   html += `</tr>`;
 
-  html += `</g>`;
+  html += `<tr><td class="rl" style="height:8px; background: transparent; border:none;"></td>${Array(DAYS).fill('<td style="height:8px; border:none;"></td>').join('')}</tr>`;
 
   document.getElementById('mt').innerHTML = html;
 
+  // 범례 로드
   const types = [
     {type:'period',label:'월경'},{type:'spotting',label:'피비침'},
     {type:'dry',label:'건조'},{type:'mucus',label:'점액'},
@@ -552,57 +562,71 @@ function render() {
   ).join('');
 }
 
-// ── 모바일 터치/클릭 시 툴팁 제어 로직 ───────────────────────
-function toggleTooltip(event, ci, i) {
-  event.stopPropagation();
-  const targetTip = document.getElementById(`tip-${ci}-${i}`);
+// ── 칸별 타겟 전용 패널 오픈 엔진 (핵심 변경점) ──────────────────────
+function openFieldPanel(ci, di, field, event) {
+  if (event) event.stopPropagation(); // 메모 툴팁 혼선 방지
   
-  document.querySelectorAll('.tooltip').forEach(tip => {
-    if (tip !== targetTip) tip.style.display = 'none';
-  });
+  editCi = ci; editDi = di; currentTargetField = field;
+  const e = cycles[ci].days[di];
+  const sd = cycles[ci].startDate;
+  
+  // 제목 동적 갱신
+  const fieldNames = { 'type': '기록 표시 선택', 'emo': '감정 상태 변경', 'memo': '메모 편집' };
+  document.getElementById('rec-title').textContent = `${di+1}일차 (${fmt(sd,di)}) · ${fieldNames[field]}`;
 
-  if (!targetTip) { openRec(ci, i); return; }
+  // 모든 세션 우선 숨기기
+  document.querySelectorAll('.input-section').forEach(sec => sec.classList.remove('active'));
 
-  if (targetTip.style.display === 'block') {
-    targetTip.style.display = 'none';
-    openRec(ci, i);
-  } else {
-    targetTip.style.display = 'block';
+  // 누른 행(필드)에 맞는 세션만 쏙 보여주기
+  if (field === 'type') {
+    document.getElementById('e-type').value = e.type || 'none';
+    document.getElementById('sec-type').classList.add('active');
+  } else if (field === 'emo') {
+    document.getElementById('e-emo').value = e.emo || '';
+    document.getElementById('sec-emo').classList.add('active');
+  } else if (field === 'memo') {
+    document.getElementById('e-memo').value = e.memo || '';
+    document.getElementById('sec-memo').classList.add('active');
+  }
+
+  // 패널 열기
+  document.getElementById('rec-overlay').classList.add('open');
+  document.getElementById('rec-panel').classList.add('open');
+  
+  // 메모 칸 선택 시 모바일 키보드 바로 자동 포커싱 편의 기능
+  if (field === 'memo') {
+    setTimeout(() => document.getElementById('e-memo').focus(), 150);
   }
 }
 
-document.addEventListener('click', () => {
-  document.querySelectorAll('.tooltip').forEach(tip => tip.style.display = 'none');
-});
-
-// ── Record panel ─────────────────────────────────────────
-function openRec(ci, di) {
-  editCi = ci; editDi = di;
-  const e = cycles[ci].days[di];
-  const sd = cycles[ci].startDate;
-  document.getElementById('rec-title').textContent = `${di+1}일차 (${fmt(sd,di)}) 기록 편집`;
-  document.getElementById('e-type').value  = e.type  || 'none';
-  document.getElementById('e-emo').value   = e.emo   || '';
-  document.getElementById('e-memo').value  = e.memo  || '';
-  document.getElementById('rec-overlay').classList.add('open');
-  document.getElementById('rec-panel').classList.add('open');
-}
 function closeRecP() {
   document.getElementById('rec-overlay').classList.remove('open');
   document.getElementById('rec-panel').classList.remove('open');
 }
+
 function saveRec() {
   const e = cycles[editCi].days[editDi];
-  e.type  = document.getElementById('e-type').value;
-  e.emo   = document.getElementById('e-emo').value;
-  e.memo  = document.getElementById('e-memo').value;
+  
+  // 활성화된 필드의 데이터만 주입받아 매칭 저장
+  if (currentTargetField === 'type') {
+    e.type = document.getElementById('e-type').value;
+  } else if (currentTargetField === 'emo') {
+    e.emo = document.getElementById('e-emo').value;
+  } else if (currentTargetField === 'memo') {
+    e.memo = document.getElementById('e-memo').value;
+  }
+  
   closeRecP(); render(); saveToCloud();
 }
 
+// 바탕화면 누르면 메모 툴팁 꺼지는 로직 유지
+document.addEventListener('click', () => {
+  document.querySelectorAll('.tooltip').forEach(tip => tip.style.display = 'none');
+});
+
 // ── Date panel ───────────────────────────────────────────
 function openDateP(ci) {
-  editDateCi = ci;
-  const cycle = cycles[ci];
+  editDateCi = ci; const cycle = cycles[ci];
   document.getElementById('date-title').textContent = `주기 ${ci+1} 시작일 수정`;
   document.getElementById('e-startdate').value = cycle.startDate || '';
   document.getElementById('date-overlay').classList.add('open');
@@ -624,12 +648,7 @@ function deleteCycle() {
   const deleted = cycles.splice(editDateCi, 1)[0];
   deleted._deletedAt = new Date().toISOString();
   trash.push(deleted);
-  
-  // 삭제 후 뷰 인덱스 보정
-  if (currentViewIndex >= cycles.length) {
-    currentViewIndex = cycles.length - 1;
-  }
-  
+  if (currentViewIndex >= cycles.length) { currentViewIndex = cycles.length - 1; }
   updateTrashBtn(); closeDateP(); render(); saveToCloud();
 }
 
@@ -663,28 +682,21 @@ function closeTrash() {
   document.getElementById('trash-panel').classList.remove('open');
 }
 function restoreCycle(i) {
-  const c = trash.splice(i, 1)[0];
-  delete c._deletedAt;
-  cycles.push(c);
-  cycles.sort((a,b) => (a.startDate||'').localeCompare(b.startDate||''));
-  
-  // 복구된 주기의 위치를 찾아 화면 활성화
+  const c = trash.splice(i, 1)[0]; delete c._deletedAt;
+  cycles.push(c); cycles.sort((a,b) => (a.startDate||'').localeCompare(b.startDate||''));
   currentViewIndex = cycles.indexOf(c);
-  
   updateTrashBtn(); closeTrash(); render(); saveToCloud();
 }
 function permDelete(i) {
   if (!confirm('영구 삭제 시 복구가 불가능합니다. 삭제할까요?')) return;
-  trash.splice(i, 1);
-  updateTrashBtn(); openTrash(); saveToCloud();
+  trash.splice(i, 1); updateTrashBtn(); openTrash(); saveToCloud();
 }
 
 // ── Add cycle ────────────────────────────────────────────
 function addCycle() {
   const today = new Date().toISOString().split('T')[0];
   cycles.push({ startDate: today, days: makeDays() });
-  currentViewIndex = cycles.length - 1; // 새로 추가한 주기로 즉시 화면 전환
-  render(); saveToCloud();
+  currentViewIndex = cycles.length - 1; render(); saveToCloud();
 }
 
 loadFromCloud();
