@@ -110,19 +110,18 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 .td-emo { width: var(--cell); height: 34px; cursor: pointer; overflow: hidden; position: relative; z-index: 5; }
 .td-graph-wrap { padding: 0; border: none; background: #fffdf9; height: 44px; }
 
-/* ── 점액, 메모 자동 행갈이(줄바꿈) 속성 완벽 수정 ── */
+/* ── 점액 모양/느낌, 메모 행갈이(줄바꿈) 스타일 지정 ── */
 .td-text-cell {
   width: var(--cell);
   max-width: var(--cell);
   min-height: 38px;
-  height: auto; /* 고정 높이 해제하여 자동 늘어나게 설정 */
+  height: auto;
   cursor: pointer;
   font-size: 10px;
   color: var(--text);
   padding: 4px 2px;
-  line-height: 1.2;
+  line-height: 1.3;
   
-  /* 자동 줄바꿈(행갈이) 강제 활성화 */
   white-space: normal !important; 
   word-wrap: break-word;
   word-break: break-all;
@@ -132,7 +131,7 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 }
 .td-text-cell:active { background: #f5f5f5; }
 
-/* 인라인 즉시 드롭다운 배치 */
+/* 인라인 즉시 드롭다운 투명 감각 정렬 */
 .inline-select {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;
   display: block; -webkit-appearance: menulist-button; appearance: menulist-button;
@@ -146,7 +145,7 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 .legend-item { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); }
 .legend-icon { width: 24px; height: 30px; display: inline-block; vertical-align: middle; }
 
-/* 팝업 편집 패널 시스템 */
+/* ── 팝업 편집 패널 시스템 (텍스트 입력 및 수정 통합) ── */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; opacity: 0; transition: opacity 0.2s ease; }
 .overlay.open { display: block; opacity: 1; }
 .panel {
@@ -342,7 +341,8 @@ function updateNavigationBar() {
   cycles.forEach((c, idx) => {
     const option = document.createElement('option');
     option.value = idx;
-    option.textContent = c.startDate ? fmtFull(c.startDate) : `주기 ${idx + 1}`;
+    // ── 0. 드롭다운 항목을 YYYY-MM-DD 포맷으로 깔끔하게 매칭 ──
+    option.textContent = c.startDate ? c.startDate : `주기 ${idx + 1}`;
     if (idx === currentViewIndex) option.selected = true;
     select.appendChild(option);
   });
@@ -372,3 +372,310 @@ function getComputedDayType(cycle, index) {
     if (targetIdx >= 0) {
       if (cycle.days[targetIdx].type === 'peak') { return `post${offset}`; }
     }
+  }
+  return cycle.days[index].type || 'none';
+}
+
+// ── 픽토그램 SVG 렌더링 ──
+const humanPath = `<path d="M14,6 C15.1,6 16,5.1 16,4 C16,2.9 15.1,2 14,2 C12.9,2 12,2.9 12,4 C12,5.1 12.9,6 14,6 Z M14,7 C12.5,7 10,7.8 10,9.3 L10,15 C10,15.6 10.4,16 11,16 C11.6,16 12,15.6 12,15 L12,11 L13,11 L13,23 C13,23.6 13.4,24 14,24 C14.6,24 15,23.6 15,23 L15,11 L16,11 L16,15 C16,15.6 16.4,16 17,16 C17.6,16 18,15.6 18,15 L18,9.3 C18,7.8 15.5,7 14,7 Z" fill="#1a1a1a"/>`;
+
+function recSVG(type) {
+  if (type==='period')
+    return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><rect width="28" height="36" fill="#E24B4A"/></svg>`;
+  if (type==='spotting')
+    return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><rect width="28" height="36" fill="#F09595"/><circle cx="14" cy="12" r="2.5" fill="#E24B4A"/><circle cx="14" cy="24" r="2.5" fill="#E24B4A"/></svg>`;
+  if (type==='dry')
+    return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><rect width="28" height="36" fill="#1D9E75"/></svg>`;
+  if (type==='mucus')
+    return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><g transform="translate(0, 5)">${humanPath}</g></svg>`;
+  if (type==='peak')
+    return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><g transform="translate(0, 2)">${humanPath}</g><path d="M14,22 L16.35,23.24 L15.9,20.62 L17.8,18.77 L15.17,18.39 L14,16 L12.83,18.39 L10.2,18.77 L12.1,20.62 L11.65,23.24 Z" fill="#D4537E"/></svg>`;
+  if (type==='post1') return postSVG('1');
+  if (type==='post2') return postSVG('2');
+  if (type==='post3') return postSVG('3');
+  return '';
+}
+
+function postSVG(num) {
+  return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><rect width="28" height="36" fill="#A3E4CD"/><g transform="translate(0, 2)">${humanPath}</g><text x="6" y="32" font-size="11" font-weight="bold" fill="#1a1a1a">${num}</text></svg>`;
+}
+
+function emoSVG(k) {
+  if (!k || !EMO[k]) return '';
+  const e = EMO[k];
+  return `<svg viewBox="0 0 26 30" style="width:26px; height:30px; display:inline-block;"><text x="13" y="22" text-anchor="middle" font-size="16" font-weight="500" fill="${e.color}">${e.sym}</text></svg>`;
+}
+
+function graphSVG(days) {
+  const W = CELL * DAYS;
+  const pts = [];
+  for (let i = 0; i < DAYS; i++) {
+    const k = days[i].emo;
+    if (k && EMO[k]) pts.push({x: i*CELL + CELL/2, y: EMO[k].y});
+  }
+  let lines = '';
+  for (let p = 0; p < pts.length-1; p++) {
+    const a = pts[p], b = pts[p+1];
+    lines += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#1D9E75" stroke-width="1.8" stroke-linecap="round"/>`;
+  }
+  let dots = '';
+  for (const p of pts) dots += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#1D9E75"/>`;
+
+  const grid = `
+    <line x1="0" y1="8"  x2="${W}" y2="8"  stroke="#eee" stroke-width="0.5" stroke-dasharray="3,3"/>
+    <line x1="0" y1="22" x2="${W}" y2="22" stroke="#eee" stroke-width="0.5" stroke-dasharray="3,3"/>
+    <line x1="0" y1="36" x2="${W}" y2="36" stroke="#eee" stroke-width="0.5" stroke-dasharray="3,3"/>`;
+  return `<svg width="${W}" height="${GH}" viewBox="0 0 ${W} ${GH}" style="display:block;overflow:visible;">${grid}${lines}${dots}</svg>`;
+}
+
+// ── Date helpers ─────────────────────────────────────────
+function addDays(dateStr, n) {
+  const d = new Date(dateStr); d.setDate(d.getDate() + n); return d;
+}
+function fmt(dateStr, i) {
+  if (!dateStr) return '';
+  const d = addDays(dateStr, i); return `${d.getMonth()+1}/${d.getDate()}`;
+}
+function isToday(dateStr, i) {
+  if (!dateStr) return false;
+  const t = new Date(); t.setHours(0,0,0,0);
+  const d = addDays(dateStr, i); d.setHours(0,0,0,0);
+  return d.getTime() === t.getTime();
+}
+function isFuture(dateStr, i) {
+  if (!dateStr) return false;
+  const t = new Date(); t.setHours(0,0,0,0);
+  const d = addDays(dateStr, i); d.setHours(0,0,0,0);
+  return d > t;
+}
+
+// ── Render ───────────────────────────────────────────────
+function render() {
+  let html = '';
+  updateNavigationBar();
+
+  if (cycles.length === 0) {
+    document.getElementById('mt').innerHTML = '';
+    return;
+  }
+
+  const cycle = cycles[currentViewIndex];
+  const ci = currentViewIndex;
+  const sd = cycle.startDate;
+
+  // Day 순서 라인 (항목 명칭 형식 2026-06-13 매핑 완료)
+  html += `<tr class="cycle-sep">
+    <td class="sep-label" onclick="openDateP(${ci})">${sd ? sd : '날짜 미설정'} ✎</td>`;
+  for (let i = 0; i < DAYS; i++) html += `<td class="th-d">${i+1}</td>`;
+  html += `</tr>`;
+
+  // 날짜 표시 라인
+  html += `<tr><td class="rl">날짜</td>`;
+  for (let i = 0; i < DAYS; i++) html += `<td class="td-date">${fmt(sd,i)}</td>`;
+  html += `</tr>`;
+
+  // 1. 기록 표시
+  html += `<tr><td class="rl">기록 표시</td>`;
+  for (let i = 0; i < DAYS; i++) {
+    const today = isToday(sd, i);
+    const future = isFuture(sd, i);
+    const cls = today ? ' is-today' : '';
+    const computedType = getComputedDayType(cycle, i);
+    
+    html += `<td class="td-rec${cls}">
+      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+        ${future ? '' : recSVG(computedType)}
+      </div>
+      ${future ? '' : `
+        <select class="inline-select" onchange="inlineSave(${i}, 'type', this.value)">
+          <option value="none" ${cycle.days[i].type==='none'?'selected':''}>-</option>
+          <option value="period" ${cycle.days[i].type==='period'?'selected':''}>🟥 월경</option>
+          <option value="spotting" ${cycle.days[i].type==='spotting'?'selected':''}>🔴 피비침</option>
+          <option value="dry" ${cycle.days[i].type==='dry'?'selected':''}>🟩 건조</option>
+          <option value="mucus" ${cycle.days[i].type==='mucus'?'selected':''}>🚶 점액</option>
+          <option value="peak" ${cycle.days[i].type==='peak'?'selected':''}>⭐ 피크</option>
+        </select>
+      `}
+    </td>`;
+  }
+  html += `</tr>`;
+
+  // 2. 점액 모양/느낌
+  html += `<tr><td class="rl">점액 모양/느낌</td>`;
+  for (let i = 0; i < DAYS; i++) {
+    const mState = cycle.days[i].mucus_state || '';
+    html += `<td class="td-text-cell" onclick="openTextP(${ci}, ${i}, 'mucus_state', '${mState}')">
+      ${mState}
+    </td>`;
+  }
+  html += `</tr>`;
+
+  // 3. 감정 그래프
+  html += `<tr><td class="rl emo">감정 그래프</td>`;
+  for (let i = 0; i < DAYS; i++) {
+    const today = isToday(sd, i);
+    const future = isFuture(sd, i);
+    const cls = today ? ' is-today' : '';
+    html += `<td class="td-emo${cls}">
+      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+        ${emoSVG(cycle.days[i].emo)}
+      </div>
+      <select class="inline-select" onchange="inlineSave(${i}, 'emo', this.value)">
+        <option value="" ${cycle.days[i].emo===''?'selected':''}>-</option>
+        <option value="up" ${cycle.days[i].emo==='up'?'selected':''}>↑ 좋을 때</option>
+        <option value="down" ${cycle.days[i].emo==='down'?'selected':''}>↓ 우울할 때</option>
+        <option value="right" ${cycle.days[i].emo==='right'?'selected':''}>→ 화날 때</option>
+        <option value="left" ${cycle.days[i].emo==='left'?'selected':''}>← 도망가고 싶을 때</option>
+        <option value="circle" ${cycle.days[i].emo==='circle'?'selected':''}>○ 지배적 감정 없음</option>
+      </select>
+    </td>`;
+  }
+  html += `</tr>`;
+
+  // 4. 감정선
+  html += `<tr>
+    <td class="rl emo" style="font-size:10px;">감정선</td>
+    <td colspan="${DAYS}" class="td-graph-wrap" style="border-left:0.5px solid var(--border);">${graphSVG(cycle.days)}</td>
+  </tr>`;
+
+  // 5. 메모
+  html += `<tr><td class="rl">메모</td>`;
+  for (let i = 0; i < DAYS; i++) {
+    const m = cycle.days[i].memo || '';
+    html += `<td class="td-text-cell" onclick="openTextP(${ci}, ${i}, 'memo', '${m}')">
+      ${m}
+    </td>`;
+  }
+  html += `</tr>`;
+
+  html += `<tr><td class="rl" style="height:8px; background: transparent; border:none;"></td>${Array(DAYS).fill('<td style="height:8px; border:none;"></td>').join('')}</tr>`;
+
+  document.getElementById('mt').innerHTML = html;
+
+  // 범례 로드
+  const types = [
+    {type:'period',label:'월경'},{type:'spotting',label:'피비침'},
+    {type:'dry',label:'건조'},{type:'mucus',label:'점액'},
+    {type:'peak',label:'피크'},{type:'post1',label:'피크+1'},
+    {type:'post2',label:'피크+2'},{type:'post3',label:'피크+3'},
+  ];
+  document.getElementById('legend-row').innerHTML = types.map(t =>
+    `<div class="legend-item"><div class="legend-icon">${recSVG(t.type)}</div><span>${t.label}</span></div>`
+  ).join('');
+}
+
+// 드롭다운 변경 동기화
+function inlineSave(dayIdx, field, value) {
+  const cycle = cycles[currentViewIndex];
+  cycle.days[dayIdx][field] = value;
+  render();
+  saveToCloud();
+}
+
+// 팝업 패널 제어 로직
+function openTextP(ci, di, field, currentVal) {
+  textEditCi = ci; textEditDi = di; textEditField = field;
+  const sd = cycles[ci].startDate;
+  const fieldTitle = field === 'memo' ? '메모 편집' : '점액 모양/느낌 편집';
+  
+  document.getElementById('text-panel-title').textContent = `${di+1}일차 (${sd}) · ${fieldTitle}`;
+  document.getElementById('text-panel-label').textContent = field === 'memo' ? '메모 내용 입력' : '점액 상태 입력';
+  
+  const input = document.getElementById('popup-input');
+  input.value = currentVal;
+  
+  document.getElementById('text-overlay').classList.add('open');
+  document.getElementById('text-panel').classList.add('open');
+  
+  setTimeout(() => input.focus(), 150);
+}
+
+function closeTextP() {
+  document.getElementById('text-overlay').classList.remove('open');
+  document.getElementById('text-panel').classList.remove('open');
+}
+
+function saveTextP() {
+  const value = document.getElementById('popup-input').value.trim();
+  cycles[textEditCi].days[textEditDi][textEditField] = value;
+  closeTextP();
+  render();
+  saveToCloud();
+}
+
+// 주기 시작일 수정 오버레이
+function openDateP(ci) {
+  editDateCi = ci; const cycle = cycles[ci];
+  document.getElementById('date-title').textContent = `주기 ${ci+1} 시작일 수정`;
+  document.getElementById('e-startdate').value = cycle.startDate || '';
+  document.getElementById('date-overlay').classList.add('open');
+  document.getElementById('date-panel').classList.add('open');
+}
+function closeDateP() {
+  document.getElementById('date-overlay').classList.remove('open');
+  document.getElementById('date-panel').classList.remove('open');
+}
+function saveDate() {
+  const v = document.getElementById('e-startdate').value;
+  if (!v) { alert('날짜를 선택해주세요.'); return; }
+  cycles[editDateCi].startDate = v;
+  closeDateP(); render(); saveToCloud();
+}
+function deleteCycle() {
+  if (cycles.length === 1) { alert('마지막 주기는 삭제할 수 없습니다.'); return; }
+  if (!confirm('이 주기를 삭제하시겠습니까? (휴지통으로 이동)')) return;
+  const deleted = cycles.splice(editDateCi, 1)[0];
+  deleted._deletedAt = new Date().toISOString();
+  trash.push(deleted);
+  if (currentViewIndex >= cycles.length) { currentViewIndex = cycles.length - 1; }
+  updateTrashBtn(); closeDateP(); render(); saveToCloud();
+}
+
+// 휴지통 로직
+function openTrash() {
+  const list = document.getElementById('trash-list');
+  const empty = document.getElementById('trash-empty');
+  if (trash.length === 0) { list.innerHTML = ''; empty.style.display = ''; }
+  else {
+    empty.style.display = 'none';
+    list.innerHTML = trash.map((c, i) => {
+      return `<div class="trash-item">
+        <div>
+          <div class="trash-item-info">${c.startDate || '날짜 미설정'}</div>
+          <div class="trash-item-sub">삭제일: ${c._deletedAt ? new Date(c._deletedAt).toLocaleDateString('ko-KR') : ''}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-restore" onclick="restoreCycle(${i})">복구</button>
+          <button class="btn-perm-del" onclick="permDelete(${i})">삭제</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('trash-overlay').classList.add('open');
+  document.getElementById('trash-panel').classList.add('open');
+}
+function closeTrash() {
+  document.getElementById('trash-overlay').classList.remove('open');
+  document.getElementById('trash-panel').classList.remove('open');
+}
+function restoreCycle(i) {
+  const c = trash.splice(i, 1)[0]; delete c._deletedAt;
+  cycles.push(c); cycles.sort((a,b) => (a.startDate||'').localeCompare(b.startDate||''));
+  currentViewIndex = cycles.indexOf(c);
+  updateTrashBtn(); closeTrash(); render(); saveToCloud();
+}
+function permDelete(i) {
+  if (!confirm('영구 삭제 시 복구가 불가능합니다. 삭제할까요?')) return;
+  trash.splice(i, 1); updateTrashBtn(); openTrash(); saveToCloud();
+}
+
+function addCycle() {
+  const today = new Date().toISOString().split('T')[0];
+  cycles.push({ startDate: today, days: makeDays() });
+  currentViewIndex = cycles.length - 1; render(); saveToCloud();
+}
+
+loadFromCloud();
+</script>
+</body>
+</html>
