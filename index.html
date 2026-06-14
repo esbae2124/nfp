@@ -20,13 +20,10 @@
   --text-muted: #767676;
   --text-light: #b5b5b5;
   --red: #E24B4A;
-  --red-light: #F09595;
   --green: #1D9E75;
-  --amber: #EF9F27;
-  --blue: #378ADD;
-  --pink: #D4537E;
   --cell: 32px;
   --label: 84px;
+  --gh: 44px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -39,7 +36,6 @@ body {
   -webkit-text-size-adjust: none;
 }
 
-/* LOADING INDICATOR */
 #loading-bar {
   position: fixed; top: 0; left: 0; right: 0; height: 3px;
   background: var(--green); z-index: 200; display: none;
@@ -64,11 +60,32 @@ body {
 .btn-hd.primary { background: var(--text); color: #fff; border-color: var(--text); }
 .btn-hd.primary:active { opacity: 0.8; }
 
+/* ── 주기 탐색 네비게이션 바 (새로 추가) ── */
+.nav-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f0f0ec; padding: 8px 16px; border-bottom: 0.5px solid var(--border);
+  gap: 8px;
+}
+.btn-nav {
+  background: var(--surface); border: 0.5px solid var(--border-strong);
+  border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold;
+  cursor: pointer; color: var(--text);
+}
+.btn-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+.select-nav {
+  flex: 1; max-width: 220px; border: 0.5px solid var(--border-strong);
+  border-radius: 6px; padding: 6px 24px 6px 10px; font-size: 13px; font-family: inherit;
+  background: var(--surface); color: var(--text); outline: none;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+
 /* SCROLL CONTAINER */
 .scroll-x { overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--border); }
 
 /* TABLE */
-table { border-collapse: collapse; background: var(--surface); }
+table { border-collapse: collapse; background: var(--surface); table-layout: fixed; width: max-content; }
 th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font-size: 11px; }
 
 .rl {
@@ -78,25 +95,39 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 }
 .rl.emo { background: #fdf6e3; color: #a07030; }
 
-.cycle-sep td { background: #f0f0ec; font-size: 11px; color: var(--text-muted); padding: 4px 0; }
+.cycle-sep td { background: #e8e8e4; font-size: 11px; color: var(--text); padding: 6px 0; font-weight: 500; }
 .cycle-sep .sep-label {
-  position: sticky; left: 0; z-index: 12; background: #e8e8e4; text-align: left;
-  padding: 6px 8px; font-size: 12px; font-weight: 500; color: var(--text);
+  position: sticky; left: 0; z-index: 12; background: #decba5; text-align: left;
+  padding: 6px 8px; font-size: 12px; font-weight: 500; color: #5c4314;
   border-right: 1.5px solid var(--border-strong); cursor: pointer;
 }
-.cycle-sep .sep-label:active { background: #dcdcd8; }
 
-.th-d { width: var(--cell); min-width: var(--cell); font-size: 10px; color: var(--text-light); background: #f0f0ec; }
+.th-d { width: var(--cell); min-width: var(--cell); font-size: 10px; color: var(--text-muted); background: #e8e8e4; }
 .td-date { width: var(--cell); font-size: 9px; color: var(--text-muted); height: 22px; background: #fafaf8; }
 .td-rec  { width: var(--cell); height: 42px; cursor: pointer; overflow: hidden; position: relative; }
 .td-rec:active { background: #f5f5f5; }
-.td-mu   { width: var(--cell); height: 22px; cursor: pointer; font-size: 10px; color: var(--text); font-weight: 500; }
-.td-mu:active { background: #f5f5f5; }
 .td-emo  { width: var(--cell); height: 34px; cursor: pointer; }
 .td-emo:active { opacity: 0.7; }
 .td-graph-wrap { padding: 0; border: none; background: #fffdf9; }
-.td-memo { width: var(--cell); height: 24px; cursor: pointer; font-size: 9px; color: var(--text-muted); overflow: hidden; white-space: nowrap; max-width: var(--cell); padding: 0 2px; }
+
+.td-memo {
+  width: var(--cell); max-width: var(--cell); height: 36px; cursor: pointer; font-size: 10px; color: var(--text);
+  padding: 0 3px; line-height: 36px; position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .td-memo:active { background: #f5f5f5; }
+
+/* 호버 및 터치 시 팝업 툴팁 */
+.td-memo .tooltip {
+  display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+  background: rgba(30, 30, 30, 0.9); color: #fff; padding: 6px 10px; border-radius: 6px;
+  font-size: 11px; line-height: 1.4; white-space: normal; word-break: break-all; z-index: 99;
+  width: max-content; max-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); text-align: left;
+}
+.td-memo .tooltip::after {
+  content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border-width: 5px; border-style: solid; border-color: rgba(30, 30, 30, 0.9) transparent transparent transparent;
+}
+.td-memo:hover .tooltip { display: block; }
 
 .is-today { box-shadow: inset 0 0 0 2px var(--green); }
 
@@ -166,6 +197,12 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
   </div>
 </div>
 
+<div class="nav-bar" id="nav-zone" style="display:none;">
+  <button class="btn-nav" id="btn-prev" onclick="moveCycle(-1)">◀</button>
+  <select class="select-nav" id="select-cycle" onchange="selectCycleByDropdown(this.value)"></select>
+  <button class="btn-nav" id="btn-next" onclick="moveCycle(1)">▶</button>
+</div>
+
 <div class="scroll-x">
   <table id="mt"></table>
 </div>
@@ -178,18 +215,18 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
   <div class="panel-title" id="rec-title">기록 편집</div>
   <div class="field-row">
     <div class="field">
-      <label>기록 유형</label>
+      <label>기록 표시</label>
       <select id="e-type">
         <option value="none">-</option>
         <option value="period">🟥 월경</option>
-        <option value="spotting">🔴 피비침/점상출혈</option>
+        <option value="spotting">🔴 피비침</option>
         <option value="dry">🟩 건조</option>
-        <option value="mucus">🚶 점액 관찰</option>
-        <option value="peak">⭐ 피크 (★)</option>
+        <option value="mucus">🚶 점액</option>
+        <option value="peak">⭐ 피크</option>
       </select>
     </div>
     <div class="field">
-      <label>감정 상태</label>
+      <label>감정 그래프</label>
       <select id="e-emo">
         <option value="">-</option>
         <option value="up">↑ 좋을 때</option>
@@ -202,29 +239,8 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
   </div>
   <div class="field-row">
     <div class="field">
-      <label>점액 모양</label>
-      <select id="e-mucus">
-        <option value="">-</option>
-        <option value="clear">투명</option>
-        <option value="cloudy">혼탁</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>점액 느낌</label>
-      <select id="e-mfeel">
-        <option value="">-</option>
-        <option value="dry">건조</option>
-        <option value="sticky">끈적</option>
-        <option value="damp">축축</option>
-        <option value="slippery">미끈</option>
-        <option value="moist">눅눅</option>
-      </select>
-    </div>
-  </div>
-  <div class="field-row one">
-    <div class="field">
       <label>메모</label>
-      <input type="text" id="e-memo" placeholder="특이사항 메모..."/>
+      <input type="text" id="e-memo" placeholder="점액 상태 및 특이사항 메모..."/>
     </div>
   </div>
   <button class="btn-save" onclick="saveRec()">저장하기</button>
@@ -256,7 +272,7 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 </div>
 
 <script>
-// ⚠️ 여기에 구글 시트 배포 후 얻은 웹 앱 URL 주소를 꼭 넣어주세요!
+// 🔗 보내주신 구글 앱스 크립트 URL 반영 완료!
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwl_xAyqZjOXjGXgODTXqW6rKMED1YEXjcQvJlMLM-8uujCiEIu4-o55p81P065dPz0fQ/exec";
 
 const DAYS = 32;
@@ -271,11 +287,10 @@ const EMO = {
   down:   { sym:'↓', color:'#378ADD', y:36 },
 };
 
-const mucusShort = { clear:'투명', cloudy:'혼탁' };
-const mfeelShort = { dry:'건조', sticky:'끈적', damp:'축축', slippery:'미끈', moist:'눅눅' };
-
 let cycles = [];
 let trash  = [];
+let currentViewIndex = 0; // 현재 화면에 활성화하여 보여줄 주기의 배열 인덱스 번호
+
 let editCi = null, editDi = null, editDateCi = null;
 
 function showLoading(show) {
@@ -283,86 +298,96 @@ function showLoading(show) {
 }
 
 function makeDays() {
-  return Array.from({length:DAYS}, () => ({type:'none',mucus:'',mfeel:'',emo:'',memo:''}));
+  return Array.from({length:DAYS}, () => ({type:'none',emo:'',memo:''}));
 }
 
 // ── Google Sheet Sync ────────────────────────────────────
 async function loadFromCloud() {
   showLoading(true);
   try {
-    // 로컬 캐시 먼저 로드해서 빠르게 보여주기
     const localData = localStorage.getItem('nfp-v2');
-    if (localData) {
-      cycles = JSON.parse(localData);
-      render();
+    if (localData) { 
+      cycles = JSON.parse(localData); 
+      currentViewIndex = cycles.length - 1; // 기본값은 가장 최신 주기
+      render(); 
     }
     const localTrash = localStorage.getItem('nfp-v2-trash');
-    if (localTrash) {
-      trash = JSON.parse(localTrash);
-      updateTrashBtn();
-    }
+    if (localTrash) { trash = JSON.parse(localTrash); updateTrashBtn(); }
 
-    if (SCRIPT_URL.includes("여기에")) {
-      // URL 설정 전 초기 샘플 세팅
-      if (cycles.length === 0) {
-        const today = new Date();
-        const start = new Date(today); start.setDate(today.getDate() - 5);
-        cycles = [{ startDate: start.toISOString().split('T')[0], days: makeDays() }];
-        render();
-      }
-      return;
-    }
-
-    // 클라우드 데이터 가져오기
-    const response = await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "load" })
-    });
+    const response = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "load" }) });
     const result = await response.json();
     if (result.status === "success" && result.data) {
       cycles = result.data;
       localStorage.setItem('nfp-v2', JSON.stringify(cycles));
+      currentViewIndex = cycles.length - 1; // 구글 데이터 받아온 후 가장 최신 주기로 지정
       render();
     }
   } catch (e) {
-    console.error("클라우드 로드 실패, 로컬 모드로 작동합니다.", e);
-  } finally {
-    showLoading(false);
-  }
+    console.error("클라우드 로드 실패, 로컬 데이터를 이용합니다.", e);
+    if (cycles.length === 0) {
+      const today = new Date().toISOString().split('T')[0];
+      cycles = [{ startDate: today, days: makeDays() }];
+      currentViewIndex = 0;
+      render();
+    }
+  } finally { showLoading(false); }
 }
 
 async function saveToCloud() {
   showLoading(true);
-  // 로컬 로리지 선저장 (네트워크 문제 대비)
   localStorage.setItem('nfp-v2', JSON.stringify(cycles));
   localStorage.setItem('nfp-v2-trash', JSON.stringify(trash));
-  
-  if (SCRIPT_URL.includes("여기에")) {
-    showLoading(false);
-    return;
-  }
-
   try {
-    await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "save", data: cycles })
-    });
-  } catch (e) {
-    console.error("클라우드 저장 실패", e);
-  } finally {
-    showLoading(false);
-  }
+    await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "save", data: cycles }) });
+  } catch (e) { console.error("클라우드 저장 실패", e); }
+  finally { showLoading(false); }
 }
 
 function updateTrashBtn() {
   const btn = document.getElementById('trash-btn');
   const cnt = document.getElementById('trash-count');
-  if (trash.length > 0) {
-    btn.style.display = '';
-    cnt.textContent = trash.length;
-  } else {
-    btn.style.display = 'none';
+  if (trash.length > 0) { btn.style.display = ''; cnt.textContent = trash.length; }
+  else { btn.style.display = 'none'; }
+}
+
+// ── 네비게이션 바 동적 업데이트 (드롭다운 & 화살표) ───────────────
+function updateNavigationBar() {
+  const navZone = document.getElementById('nav-zone');
+  if (cycles.length <= 1) {
+    // 주기가 1개 이하일 때는 네비게이션 창 숨김
+    navZone.style.display = 'none';
+    return;
   }
+  navZone.style.display = 'flex';
+
+  const select = document.getElementById('select-cycle');
+  select.innerHTML = '';
+
+  // 드롭다운 리스트 채우기 (항목명: 주기 시작일자)
+  cycles.forEach((c, idx) => {
+    const option = document.createElement('option');
+    option.value = idx;
+    option.textContent = c.startDate ? fmtFull(c.startDate) : `주기 ${idx + 1} (날짜 미설정)`;
+    if (idx === currentViewIndex) option.selected = true;
+    select.appendChild(option);
+  });
+
+  // 화살표 활성/비활성화 처리
+  document.getElementById('btn-prev').disabled = (currentViewIndex === 0);
+  document.getElementById('btn-next').disabled = (currentViewIndex === cycles.length - 1);
+}
+
+function moveCycle(direction) {
+  const targetIndex = currentViewIndex + direction;
+  if (targetIndex >= 0 && targetIndex < cycles.length) {
+    currentViewIndex = targetIndex;
+    render();
+  }
+}
+
+function selectCycleByDropdown(val) {
+  currentViewIndex = parseInt(val, 10);
+  render();
 }
 
 // ── 피크일 자동 계산 엔진 ──────────────────────────────────
@@ -370,41 +395,34 @@ function getComputedDayType(cycle, index) {
   for (let offset = 1; offset <= 3; offset++) {
     const targetIdx = index - offset;
     if (targetIdx >= 0) {
-      if (cycle.days[targetIdx].type === 'peak') {
-        return `post${offset}`;
-      }
+      if (cycle.days[targetIdx].type === 'peak') { return `post${offset}`; }
     }
   }
   return cycle.days[index].type || 'none';
 }
 
-// ── SVGs ─────────────────────────────────────────────────
+// ── 픽토그램 SVG 생성 함수 ───────────────────────────────
+const humanPath = `<path d="M14,6 C15.1,6 16,5.1 16,4 C16,2.9 15.1,2 14,2 C12.9,2 12,2.9 12,4 C12,5.1 12.9,6 14,6 Z M14,7 C12.5,7 10,7.8 10,9.3 L10,15 C10,15.6 10.4,16 11,16 C11.6,16 12,15.6 12,15 L12,11 L13,11 L13,23 C13,23.6 13.4,24 14,24 C14.6,24 15,23.6 15,23 L15,11 L16,11 L16,15 C16,15.6 16.4,16 17,16 C17.6,16 18,15.6 18,15 L18,9.3 C18,7.8 15.5,7 14,7 Z" fill="#1a1a1a"/>`;
+
 function recSVG(type) {
   if (type==='period')
     return `<svg width="28" height="36" viewBox="0 0 28 36"><rect width="28" height="36" fill="#E24B4A"/></svg>`;
   if (type==='spotting')
-    return `<svg width="28" height="36" viewBox="0 0 28 36"><rect width="28" height="36" fill="#F09595"/><circle cx="14" cy="8" r="4" fill="#E24B4A"/><circle cx="14" cy="19" r="4" fill="#E24B4A"/><circle cx="14" cy="30" r="4" fill="#E24B4A"/></svg>`;
+    return `<svg width="28" height="36" viewBox="0 0 28 36"><rect width="28" height="36" fill="#F09595"/><circle cx="14" cy="12" r="2.5" fill="#E24B4A"/><circle cx="14" cy="24" r="2.5" fill="#E24B4A"/></svg>`;
   if (type==='dry')
     return `<svg width="28" height="36" viewBox="0 0 28 36"><rect width="28" height="36" fill="#1D9E75"/></svg>`;
-  if (type==='mucus')  return pSVG('none','#555',false,'');
-  if (type==='peak')   return pSVG('none','#555',true,'');
-  if (type==='post1')  return pSVG('#1D9E75','#fff',false,'1');
-  if (type==='post2')  return pSVG('#1D9E75','#fff',false,'2');
-  if (type==='post3')  return pSVG('#1D9E75','#fff',false,'3');
+  if (type==='mucus')
+    return `<svg width="28" height="36" viewBox="0 0 28 36"><g transform="translate(0, 5)">${humanPath}</g></svg>`;
+  if (type==='peak')
+    return `<svg width="28" height="36" viewBox="0 0 28 36"><g transform="translate(0, 2)">${humanPath}</g><path d="M14,22 L16.35,23.24 L15.9,20.62 L17.8,18.77 L15.17,18.39 L14,16 L12.83,18.39 L10.2,18.77 L12.1,20.62 L11.65,23.24 Z" fill="#D4537E"/></svg>`;
+  if (type==='post1') return postSVG('1');
+  if (type==='post2') return postSVG('2');
+  if (type==='post3') return postSVG('3');
   return `<svg width="28" height="36" viewBox="0 0 28 36"></svg>`;
 }
 
-function pSVG(bg, bc, star, num) {
-  const bgR = bg!=='none' ? `<rect width="28" height="36" fill="${bg}"/>` : '';
-  const fig = `<circle cx="14" cy="7" r="4" fill="none" stroke="${bc}" stroke-width="1.2"/>
-    <line x1="14" y1="11" x2="14" y2="24" stroke="${bc}" stroke-width="1.2"/>
-    <line x1="14" y1="15" x2="8"  y2="20" stroke="${bc}" stroke-width="1.2"/>
-    <line x1="14" y1="15" x2="20" y2="20" stroke="${bc}" stroke-width="1.2"/>
-    <line x1="14" y1="24" x2="9"  y2="34" stroke="${bc}" stroke-width="1.2"/>
-    <line x1="14" y1="24" x2="19" y2="34" stroke="${bc}" stroke-width="1.2"/>`;
-  const s = star ? `<text x="21" y="29" font-size="10" fill="#D4537E">★</text>` : '';
-  const n = num  ? `<text x="3"  y="34" font-size="9" font-weight="bold" fill="${bg==='#1D9E75'?'#fff':'#555'}">${num}</text>` : '';
-  return `<svg width="28" height="36" viewBox="0 0 28 36">${bgR}${fig}${s}${n}</svg>`;
+function postSVG(num) {
+  return `<svg width="28" height="36" viewBox="0 0 28 36"><rect width="28" height="36" fill="#A3E4CD"/><g transform="translate(0, 2)">${humanPath}</g><text x="6" y="32" font-size="11" font-weight="bold" fill="#1a1a1a">${num}</text></svg>`;
 }
 
 function emoSVG(k) {
@@ -438,19 +456,15 @@ function graphSVG(days) {
 
 // ── Date helpers ─────────────────────────────────────────
 function addDays(dateStr, n) {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + n);
-  return d;
+  const d = new Date(dateStr); d.setDate(d.getDate() + n); return d;
 }
 function fmt(dateStr, i) {
   if (!dateStr) return '';
-  const d = addDays(dateStr, i);
-  return `${d.getMonth()+1}/${d.getDate()}`;
+  const d = addDays(dateStr, i); return `${d.getMonth()+1}/${d.getDate()}`;
 }
 function fmtFull(dateStr) {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+  const d = new Date(dateStr); return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
 }
 function isToday(dateStr, i) {
   if (!dateStr) return false;
@@ -468,6 +482,9 @@ function isFuture(dateStr, i) {
 // ── Render ───────────────────────────────────────────────
 function render() {
   let html = '';
+  
+  // 네비게이션바 컨트롤 갱신
+  updateNavigationBar();
 
   if (cycles.length === 0) {
     document.getElementById('mt').innerHTML = '';
@@ -475,62 +492,58 @@ function render() {
     return;
   }
 
-  cycles.forEach((cycle, ci) => {
-    const sd = cycle.startDate;
+  // ⚠️ 중요: 오직 현재 인덱스(currentViewIndex)에 해당하는 주기 1개만 화면에 렌더링 (지나간 기록 숨김처리)
+  const cycle = cycles[currentViewIndex];
+  const ci = currentViewIndex;
+  const sd = cycle.startDate;
 
-    html += `<tr class="cycle-sep">
-      <td class="sep-label" onclick="openDateP(${ci})">
-        ${sd ? fmtFull(sd) : '날짜 미설정'} ✎
-      </td>`;
-    for (let i = 0; i < DAYS; i++) html += `<td class="th-d">${i+1}</td>`;
-    html += `</tr>`;
+  html += `<g id="cycle-block-${ci}">`;
 
-    html += `<tr><td class="rl">날짜</td>`;
-    for (let i = 0; i < DAYS; i++) html += `<td class="td-date">${fmt(sd,i)}</td>`;
-    html += `</tr>`;
+  html += `<tr class="cycle-sep">
+    <td class="sep-label" onclick="openDateP(${ci})">${sd ? fmtFull(sd) : '날짜 미설정'} ✎</td>`;
+  for (let i = 0; i < DAYS; i++) html += `<td class="th-d">${i+1}</td>`;
+  html += `</tr>`;
 
-    html += `<tr><td class="rl">기록 표시</td>`;
-    for (let i = 0; i < DAYS; i++) {
-      const today = isToday(sd, i);
-      const future = isFuture(sd, i);
-      const cls = today ? ' is-today' : '';
-      const computedType = getComputedDayType(cycle, i);
-      html += `<td class="td-rec${cls}" onclick="openRec(${ci},${i})">${future ? '' : recSVG(computedType)}</td>`;
-    }
-    html += `</tr>`;
+  html += `<tr><td class="rl">날짜</td>`;
+  for (let i = 0; i < DAYS; i++) html += `<td class="td-date">${fmt(sd,i)}</td>`;
+  html += `</tr>`;
 
-    html += `<tr><td class="rl">점액 모양</td>`;
-    for (let i = 0; i < DAYS; i++) html += `<td class="td-mu" onclick="openRec(${ci},${i})">${mucusShort[cycle.days[i].mucus]||''}</td>`;
-    html += `</tr>`;
+  html += `<tr><td class="rl">기록 표시</td>`;
+  for (let i = 0; i < DAYS; i++) {
+    const today = isToday(sd, i);
+    const future = isFuture(sd, i);
+    const cls = today ? ' is-today' : '';
+    const computedType = getComputedDayType(cycle, i);
+    html += `<td class="td-rec${cls}" onclick="openRec(${ci},${i})">${future ? '' : recSVG(computedType)}</td>`;
+  }
+  html += `</tr>`;
 
-    html += `<tr><td class="rl">점액 느낌</td>`;
-    for (let i = 0; i < DAYS; i++) html += `<td class="td-mu" onclick="openRec(${ci},${i})">${mfeelShort[cycle.days[i].mfeel]||''}</td>`;
-    html += `</tr>`;
+  html += `<tr><td class="rl emo">감정 그래프</td>`;
+  for (let i = 0; i < DAYS; i++) html += `<td class="td-emo" onclick="openRec(${ci},${i})">${emoSVG(cycle.days[i].emo)}</td>`;
+  html += `</tr>`;
 
-    html += `<tr><td class="rl emo">감정 그래프</td>`;
-    for (let i = 0; i < DAYS; i++) html += `<td class="td-emo" onclick="openRec(${ci},${i})">${emoSVG(cycle.days[i].emo)}</td>`;
-    html += `</tr>`;
+  html += `<tr>
+    <td class="rl emo" style="font-size:10px;">감정선</td>
+    <td colspan="${DAYS}" class="td-graph-wrap" style="border-left:0.5px solid var(--border);">${graphSVG(cycle.days)}</td>
+  </tr>`;
 
-    html += `<tr>
-      <td class="rl emo" style="font-size:10px;">감정선</td>
-      <td colspan="${DAYS}" class="td-graph-wrap" style="border-left:0.5px solid var(--border);">${graphSVG(cycle.days)}</td>
-    </tr>`;
+  html += `<tr><td class="rl">메모</td>`;
+  for (let i = 0; i < DAYS; i++) {
+    const m = cycle.days[i].memo || '';
+    html += `<td class="td-memo" onclick="toggleTooltip(event, ${ci}, ${i})">
+      ${m}
+      ${m ? `<div class="tooltip" id="tip-${ci}-${i}">${m}</div>` : ''}
+    </td>`;
+  }
+  html += `</tr>`;
 
-    html += `<tr><td class="rl">메모</td>`;
-    for (let i = 0; i < DAYS; i++) {
-      const m = cycle.days[i].memo || '';
-      html += `<td class="td-memo" onclick="openRec(${ci},${i})" title="${m}">${m}</td>`;
-    }
-    html += `</tr>`;
-
-    html += `<tr><td class="rl" style="height:8px; background: transparent; border:none;"></td>${Array(DAYS).fill('<td style="height:8px; border:none;"></td>').join('')}</tr>`;
-  });
+  html += `</g>`;
 
   document.getElementById('mt').innerHTML = html;
 
   const types = [
     {type:'period',label:'월경'},{type:'spotting',label:'피비침'},
-    {type:'dry',label:'건조'},{type:'mucus',label:'점액관찰'},
+    {type:'dry',label:'건조'},{type:'mucus',label:'점액'},
     {type:'peak',label:'피크'},{type:'post1',label:'피크+1'},
     {type:'post2',label:'피크+2'},{type:'post3',label:'피크+3'},
   ];
@@ -539,15 +552,36 @@ function render() {
   ).join('');
 }
 
+// ── 모바일 터치/클릭 시 툴팁 제어 로직 ───────────────────────
+function toggleTooltip(event, ci, i) {
+  event.stopPropagation();
+  const targetTip = document.getElementById(`tip-${ci}-${i}`);
+  
+  document.querySelectorAll('.tooltip').forEach(tip => {
+    if (tip !== targetTip) tip.style.display = 'none';
+  });
+
+  if (!targetTip) { openRec(ci, i); return; }
+
+  if (targetTip.style.display === 'block') {
+    targetTip.style.display = 'none';
+    openRec(ci, i);
+  } else {
+    targetTip.style.display = 'block';
+  }
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.tooltip').forEach(tip => tip.style.display = 'none');
+});
+
 // ── Record panel ─────────────────────────────────────────
 function openRec(ci, di) {
   editCi = ci; editDi = di;
   const e = cycles[ci].days[di];
   const sd = cycles[ci].startDate;
-  document.getElementById('rec-title').textContent = `${di+1}일차 (${fmt(sd,di)}) 기록`;
+  document.getElementById('rec-title').textContent = `${di+1}일차 (${fmt(sd,di)}) 기록 편집`;
   document.getElementById('e-type').value  = e.type  || 'none';
-  document.getElementById('e-mucus').value = e.mucus || '';
-  document.getElementById('e-mfeel').value = e.mfeel || '';
   document.getElementById('e-emo').value   = e.emo   || '';
   document.getElementById('e-memo').value  = e.memo  || '';
   document.getElementById('rec-overlay').classList.add('open');
@@ -560,8 +594,6 @@ function closeRecP() {
 function saveRec() {
   const e = cycles[editCi].days[editDi];
   e.type  = document.getElementById('e-type').value;
-  e.mucus = document.getElementById('e-mucus').value;
-  e.mfeel = document.getElementById('e-mfeel').value;
   e.emo   = document.getElementById('e-emo').value;
   e.memo  = document.getElementById('e-memo').value;
   closeRecP(); render(); saveToCloud();
@@ -592,6 +624,12 @@ function deleteCycle() {
   const deleted = cycles.splice(editDateCi, 1)[0];
   deleted._deletedAt = new Date().toISOString();
   trash.push(deleted);
+  
+  // 삭제 후 뷰 인덱스 보정
+  if (currentViewIndex >= cycles.length) {
+    currentViewIndex = cycles.length - 1;
+  }
+  
   updateTrashBtn(); closeDateP(); render(); saveToCloud();
 }
 
@@ -599,9 +637,8 @@ function deleteCycle() {
 function openTrash() {
   const list = document.getElementById('trash-list');
   const empty = document.getElementById('trash-empty');
-  if (trash.length === 0) {
-    list.innerHTML = ''; empty.style.display = '';
-  } else {
+  if (trash.length === 0) { list.innerHTML = ''; empty.style.display = ''; }
+  else {
     empty.style.display = 'none';
     list.innerHTML = trash.map((c, i) => {
       const sd = c.startDate ? fmtFull(c.startDate) : '날짜 미설정';
@@ -630,6 +667,10 @@ function restoreCycle(i) {
   delete c._deletedAt;
   cycles.push(c);
   cycles.sort((a,b) => (a.startDate||'').localeCompare(b.startDate||''));
+  
+  // 복구된 주기의 위치를 찾아 화면 활성화
+  currentViewIndex = cycles.indexOf(c);
+  
   updateTrashBtn(); closeTrash(); render(); saveToCloud();
 }
 function permDelete(i) {
@@ -642,11 +683,10 @@ function permDelete(i) {
 function addCycle() {
   const today = new Date().toISOString().split('T')[0];
   cycles.push({ startDate: today, days: makeDays() });
+  currentViewIndex = cycles.length - 1; // 새로 추가한 주기로 즉시 화면 전환
   render(); saveToCloud();
-  setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 100);
 }
 
-// ── Init ─────────────────────────────────────────────────
 loadFromCloud();
 </script>
 </body>
