@@ -95,63 +95,44 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 }
 .rl.emo { background: #fdf6e3; color: #a07030; }
 
-.cycle-sep td { background: #f0f0ec; font-size: 11px; color: var(--text-muted); padding: 4px 0; height: auto; }
+/* ── 0. 행갈이 방지 패치 완료 ── */
+.cycle-sep td { background: #f0f0ec; font-size: 11px; color: var(--text-muted); padding: 4px 0; height: auto; z-index: 1; }
 .cycle-sep .sep-label {
-  position: sticky; left: 0; z-index: 12; background: #e8e8e4; text-align: left;
+  position: sticky; left: 0; z-index: 2; background: #e8e8e4; text-align: left;
   padding: 6px 8px; font-size: 12px; font-weight: 500; color: var(--text);
   border-right: 1.5px solid var(--border-strong); cursor: pointer;
+  white-space: nowrap; /* 줄바꿈 금지 고정 */
 }
 
 .th-d { width: var(--cell); min-width: var(--cell); font-size: 10px; color: var(--text-light); background: #f0f0ec; }
 .td-date { width: var(--cell); font-size: 9px; color: var(--text-muted); height: 22px; background: #fafaf8; }
 
-/* 데이터 기록 칸 기본 속성 정의 */
-.td-rec { width: var(--cell); height: 44px; cursor: pointer; overflow: hidden; }
-.td-emo { width: var(--cell); height: 34px; cursor: pointer; overflow: hidden; }
+/* 기록 구역 정비 */
+.td-rec { width: var(--cell); height: 44px; cursor: pointer; overflow: hidden; z-index: 5; }
+.td-emo { width: var(--cell); height: 34px; cursor: pointer; overflow: hidden; z-index: 5; }
 .td-graph-wrap { padding: 0; border: none; background: #fffdf9; height: 44px; }
 
-/* ── 1영역 칸 선택 시 시각적 하이라이트 효과 ── */
-.td-rec.selected-cell, .td-emo.selected-cell {
-  outline: 2px solid #EF9F27 !important;
-  outline-offset: -2px;
-  background: #fff8eb;
-}
-
-/* ── 텍스트 입력칸 클릭 시 무제한 자동 확장 박스 전환 스타일 ── */
+/* 텍스트 구역 정비 */
 .td-text-cell {
   width: var(--cell); max-width: var(--cell); height: 38px; cursor: pointer; font-size: 10px; color: var(--text);
   padding: 0 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; word-break: break-all;
 }
 .td-text-cell:active { background: #f5f5f5; }
 
-/* 확장형 입력 상자 */
-.inline-expand-input {
-  position: absolute; top: 1px; left: 50%; transform: translateX(-50%);
-  width: 130px; min-height: 50px; height: auto;
-  border: 2px solid var(--text); border-radius: 6px; padding: 6px;
-  font-size: 12px; font-family: inherit; text-align: left; outline: none; z-index: 99;
-  background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+/* 선택용 투명 드롭다운 배치 */
+.inline-select {
+  position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;
 }
 
 .is-today { box-shadow: inset 0 0 0 2px var(--green); }
 
-/* ── 2영역 하단 메뉴 테이블 연동 바 ── */
-.legend-zone {
-  background: var(--surface); border-top: 1px solid var(--border);
-  padding: 16px; display: flex; flex-direction: column; gap: 14px;
-}
-.legend-group { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
-.legend-group-title { font-size: 12px; font-weight: bold; color: var(--text-muted); width: 100%; margin-bottom: 2px; }
+/* ── 2영역 하단 단순 범례 영역 스타일 ── */
+.legend-zone { background: var(--surface); border-top: 1px solid var(--border); padding: 16px; }
+.legend-group { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.legend-item { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); }
+.legend-icon { width: 24px; height: 30px; display: inline-block; vertical-align: middle; }
 
-.clickable-badge {
-  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
-  border: 1px solid var(--border-strong); border-radius: 8px; background: #fff;
-  cursor: pointer; font-size: 12px; user-select: none;
-}
-.clickable-badge:active { background: #f0f0f0; transform: scale(0.97); }
-.clickable-badge .badge-icon { width: 24px; height: 30px; display: inline-block; vertical-align: middle; }
-
-/* DATE EDIT PANEL */
+/* ── 3. 팝업창 패널 시스템 (입력 및 수정 통합) ── */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; opacity: 0; transition: opacity 0.2s ease; }
 .overlay.open { display: block; opacity: 1; }
 .panel {
@@ -168,13 +149,16 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 .field input {
-  border: 1px solid var(--border-strong); border-radius: 10px; padding: 11px 12px;
+  border: 1px solid var(--border-strong); border-radius: 10px; padding: 12px;
   font-size: 14px; font-family: inherit; background: var(--surface); color: var(--text); width: 100%; outline: none;
 }
+.field input:focus { border-color: var(--text); }
 .btn-save {
   width: 100%; background: var(--text); color: #fff; border: none; border-radius: 12px; padding: 15px;
   font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; margin-top: 12px;
 }
+.btn-save:active { opacity: 0.85; }
+
 .date-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; text-align: center; }
 .date-actions { display: flex; gap: 8px; margin-top: 8px; }
 .btn-delete {
@@ -188,8 +172,6 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 .trash-item-sub  { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
 .btn-restore { background: var(--green); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; }
 .btn-perm-del { background: none; color: var(--red); border: 1px solid var(--red); border-radius: 8px; padding: 8px 12px; font-size: 12px; cursor: pointer; }
-
-.empty { text-align: center; padding: 80px 20px; color: var(--text-muted); font-size: 14px; line-height: 1.8; }
 </style>
 </head>
 <body>
@@ -215,33 +197,20 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 </div>
 
 <div class="legend-zone">
-  <div class="legend-group">
-    <div class="legend-group-title">🟩 기록 표시 (상단 1영역 선택 후 터치)</div>
-    <div class="clickable-badge" onclick="injectValue('type', 'none')"><span style="font-weight:bold;color:#aaa;">- 초기화</span></div>
-    <div class="clickable-badge" onclick="injectValue('type', 'period')"><div class="badge-icon"></div>🟥 월경</div>
-    <div class="clickable-badge" onclick="injectValue('type', 'spotting')"><div class="badge-icon"></div>🔴 피비침</div>
-    <div class="clickable-badge" onclick="injectValue('type', 'dry')"><div class="badge-icon"></div>🟩 건조</div>
-    <div class="clickable-badge" onclick="injectValue('type', 'mucus')"><div class="badge-icon"></div>🚶 점액</div>
-    <div class="clickable-badge" onclick="injectValue('type', 'peak')"><div class="badge-icon"></div>⭐ 피크</div>
-  </div>
-
-  <div class="legend-group">
-    <div class="legend-group-title">💛 감정 그래프 (상단 1영역 선택 후 터치)</div>
-    <div class="clickable-badge" onclick="injectValue('emo', '')"><span style="font-weight:bold;color:#aaa;">- 초기화</span></div>
-    <div class="clickable-badge" onclick="injectValue('emo', 'up')"><span style="color:#E24B4A;font-weight:bold;">↑ 좋을 때</span></div>
-    <div class="clickable-badge" onclick="injectValue('emo', 'down')"><span style="color:#378ADD;font-weight:bold;">↓ 우울할 때</span></div>
-    <div class="clickable-badge" onclick="injectValue('emo', 'right')"><span style="color:#1D9E75;font-weight:bold;">→ 화날 때</span></div>
-    <div class="clickable-badge" onclick="injectValue('emo', 'left')"><span style="color:#EF9F27;font-weight:bold;">← 도망가고 싶을 때</span></div>
-    <div class="clickable-badge" onclick="injectValue('emo', 'circle')"><span style="color:#888780;font-weight:bold;">○ 없음</span></div>
-  </div>
+  <div class="legend-group" id="legend-row"></div>
 </div>
 
-<div class="overlay" id="trash-overlay" onclick="closeTrash()"></div>
-<div class="panel" id="trash-panel">
+<div class="overlay" id="text-overlay" onclick="closeTextP()"></div>
+<div class="panel" id="text-panel">
   <div class="handle"></div>
-  <div class="panel-title">🗑 삭제된 주기 목록</div>
-  <div id="trash-list"></div>
-  <p id="trash-empty" style="color:#bbb;font-size:13px;text-align:center;padding:32px 0;display:none;">삭제된 주기가 없습니다.</p>
+  <div class="panel-title" id="text-panel-title">내용 편집</div>
+  <div class="field-row">
+    <div class="field">
+      <label id="text-panel-label">내용 입력</label>
+      <input type="text" id="popup-input" placeholder="여기에 작성하세요..."/>
+    </div>
+  </div>
+  <button class="btn-save" onclick="saveTextP()">저장하기</button>
 </div>
 
 <div class="overlay" id="date-overlay" onclick="closeDateP()"></div>
@@ -259,6 +228,14 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
     <button class="btn-delete" onclick="deleteCycle()">이 주기 삭제</button>
     <button class="btn-save" style="flex:2;margin-top:0;" onclick="saveDate()">변경사항 저장</button>
   </div>
+</div>
+
+<div class="overlay" id="trash-overlay" onclick="closeTrash()"></div>
+<div class="panel" id="trash-panel">
+  <div class="handle"></div>
+  <div class="panel-title">🗑 삭제된 주기 목록</div>
+  <div id="trash-list"></div>
+  <p id="trash-empty" style="color:#bbb;font-size:13px;text-align:center;padding:32px 0;display:none;">삭제된 주기가 없습니다.</p>
 </div>
 
 <script>
@@ -279,11 +256,9 @@ const EMO = {
 let cycles = [];
 let trash  = [];
 let currentViewIndex = 0;
-let editDateCi = null;
 
-// 1영역 선택 상태를 기억하는 전역 변수
-let selectedDayIndex = null;
-let selectedFieldType = null; // 'type' (기록표시) 또는 'emo' (감정그래프)
+// 팝업창 임시 타겟 기억 변수
+let textEditCi = null, textEditDi = null, textEditField = null;
 
 function showLoading(show) {
   document.getElementById('loading-bar').style.display = show ? 'block' : 'none';
@@ -367,14 +342,12 @@ function moveCycle(direction) {
   const targetIndex = currentViewIndex + direction;
   if (targetIndex >= 0 && targetIndex < cycles.length) {
     currentViewIndex = targetIndex;
-    clearSelection();
     render();
   }
 }
 
 function selectCycleByDropdown(val) {
   currentViewIndex = parseInt(val, 10);
-  clearSelection();
   render();
 }
 
@@ -390,20 +363,21 @@ function getComputedDayType(cycle, index) {
   return cycle.days[index].type || 'none';
 }
 
-// ── 픽토그램 SVG 렌더링 엔진 (구조 및 비율 패치) ───────────────────
+// ── 1. 기록표시 안 뜨던 버그 완전 박멸 (SVG 드로잉 엔진 가공) ──
 const humanPath = `<path d="M14,6 C15.1,6 16,5.1 16,4 C16,2.9 15.1,2 14,2 C12.9,2 12,2.9 12,4 C12,5.1 12.9,6 14,6 Z M14,7 C12.5,7 10,7.8 10,9.3 L10,15 C10,15.6 10.4,16 11,16 C11.6,16 12,15.6 12,15 L12,11 L13,11 L13,23 C13,23.6 13.4,24 14,24 C14.6,24 15,23.6 15,23 L15,11 L16,11 L16,15 C16,15.6 16.4,16 17,16 C17.6,16 18,15.6 18,15 L18,9.3 C18,7.8 15.5,7 14,7 Z" fill="#1a1a1a"/>`;
 
 function recSVG(type) {
+  // viewBox 비율 고정 및 display 바인딩을 통해 흐려짐/안뜸 증상 완벽 차단
   if (type==='period')
-    return `<svg viewBox="0 0 28 36" style="width:100%; height:44px; display:block;"><rect width="28" height="36" fill="#E24B4A"/></svg>`;
+    return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><rect width="28" height="36" fill="#E24B4A"/></svg>`;
   if (type==='spotting')
-    return `<svg viewBox="0 0 28 36" style="width:100%; height:44px; display:block;"><rect width="28" height="36" fill="#F09595"/><circle cx="14" cy="12" r="2.5" fill="#E24B4A"/><circle cx="14" cy="24" r="2.5" fill="#E24B4A"/></svg>`;
+    return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><rect width="28" height="36" fill="#F09595"/><circle cx="14" cy="12" r="2.5" fill="#E24B4A"/><circle cx="14" cy="24" r="2.5" fill="#E24B4A"/></svg>`;
   if (type==='dry')
-    return `<svg viewBox="0 0 28 36" style="width:100%; height:44px; display:block;"><rect width="28" height="36" fill="#1D9E75"/></svg>`;
+    return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><rect width="28" height="36" fill="#1D9E75"/></svg>`;
   if (type==='mucus')
-    return `<svg viewBox="0 0 28 36" style="width:100%; height:44px; display:block;"><g transform="translate(0, 5)">${humanPath}</g></svg>`;
+    return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><g transform="translate(0, 5)">${humanPath}</g></svg>`;
   if (type==='peak')
-    return `<svg viewBox="0 0 28 36" style="width:100%; height:44px; display:block;"><g transform="translate(0, 2)">${humanPath}</g><path d="M14,22 L16.35,23.24 L15.9,20.62 L17.8,18.77 L15.17,18.39 L14,16 L12.83,18.39 L10.2,18.77 L12.1,20.62 L11.65,23.24 Z" fill="#D4537E"/></svg>`;
+    return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><g transform="translate(0, 2)">${humanPath}</g><path d="M14,22 L16.35,23.24 L15.9,20.62 L17.8,18.77 L15.17,18.39 L14,16 L12.83,18.39 L10.2,18.77 L12.1,20.62 L11.65,23.24 Z" fill="#D4537E"/></svg>`;
   if (type==='post1') return postSVG('1');
   if (type==='post2') return postSVG('2');
   if (type==='post3') return postSVG('3');
@@ -411,35 +385,30 @@ function recSVG(type) {
 }
 
 function postSVG(num) {
-  return `<svg viewBox="0 0 28 36" style="width:100%; height:44px; display:block;"><rect width="28" height="36" fill="#A3E4CD"/><g transform="translate(0, 2)">${humanPath}</g><text x="6" y="32" font-size="11" font-weight="bold" fill="#1a1a1a">${num}</text></svg>`;
+  return `<svg viewBox="0 0 28 36" style="width:28px; height:36px; display:inline-block;"><rect width="28" height="36" fill="#A3E4CD"/><g transform="translate(0, 2)">${humanPath}</g><text x="6" y="32" font-size="11" font-weight="bold" fill="#1a1a1a">${num}</text></svg>`;
 }
 
 function emoSVG(k) {
   if (!k || !EMO[k]) return '';
   const e = EMO[k];
-  return `<svg viewBox="0 0 26 30" style="width:100%; height:34px; display:block;"><text x="13" y="22" text-anchor="middle" font-size="16" font-weight="500" fill="${e.color}">${e.sym}</text></svg>`;
+  return `<svg viewBox="0 0 26 30" style="width:26px; height:30px; display:inline-block;"><text x="13" y="22" text-anchor="middle" font-size="16" font-weight="500" fill="${e.color}">${e.sym}</text></svg>`;
 }
 
-// ── 감정선 그래프 '초록색 점'으로 롤백 완료 ───────────────────────
+// ── 나. 감정선 '초록 점' 고정 ──
 function graphSVG(days) {
   const W = CELL * DAYS;
   const pts = [];
   for (let i = 0; i < DAYS; i++) {
     const k = days[i].emo;
-    if (k && EMO[k]) pts.push({x: i*CELL + CELL/2, y: EMO[k].y, color: '#1D9E75'}); // 고정 초록색 적용
+    if (k && EMO[k]) pts.push({x: i*CELL + CELL/2, y: EMO[k].y});
   }
   let lines = '';
   for (let p = 0; p < pts.length-1; p++) {
     const a = pts[p], b = pts[p+1];
-    const mx = (a.x+b.x)/2, my = (a.y+b.y)/2;
-    lines += `<line x1="${a.x}" y1="${a.y}" x2="${mx}" y2="${my}" stroke="#1D9E75" stroke-width="1.8" stroke-linecap="round"/>`;
-    lines += `<line x1="${mx}" y1="${my}" x2="${b.x}" y2="${b.y}" stroke="#1D9E75" stroke-width="1.8" stroke-linecap="round"/>`;
+    lines += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#1D9E75" stroke-width="1.8" stroke-linecap="round"/>`;
   }
-  
   let dots = '';
-  for (const p of pts) {
-    dots += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#1D9E75"/>`; // 깔끔한 circle로 복구
-  }
+  for (const p of pts) dots += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#1D9E75"/>`;
 
   const grid = `
     <line x1="0" y1="8"  x2="${W}" y2="8"  stroke="#eee" stroke-width="0.5" stroke-dasharray="3,3"/>
@@ -498,41 +467,57 @@ function render() {
   for (let i = 0; i < DAYS; i++) html += `<td class="td-date">${fmt(sd,i)}</td>`;
   html += `</tr>`;
 
-  // 1. 기록 표시 (클릭 시 1영역 선택 상태로 빌드)
+  // 1. 기록 표시 (드롭다운 즉시 노출 롤백 완료)
   html += `<tr><td class="rl">기록 표시</td>`;
   for (let i = 0; i < DAYS; i++) {
     const today = isToday(sd, i);
     const future = isFuture(sd, i);
-    const isSel = (selectedDayIndex === i && selectedFieldType === 'type') ? ' selected-cell' : '';
     const cls = today ? ' is-today' : '';
     const computedType = getComputedDayType(cycle, i);
     
-    html += `<td class="td-rec${cls}${isSel}" onclick="selectCell(${i}, 'type')">
+    html += `<td class="td-rec${cls}">
       <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
         ${future ? '' : recSVG(computedType)}
       </div>
+      ${future ? '' : `
+        <select class="inline-select" onchange="inlineSave(${i}, 'type', this.value)">
+          <option value="none" ${cycle.days[i].type==='none'?'selected':''}>-</option>
+          <option value="period" ${cycle.days[i].type==='period'?'selected':''}>🟥 월경</option>
+          <option value="spotting" ${cycle.days[i].type==='spotting'?'selected':''}>🔴 피비침</option>
+          <option value="dry" ${cycle.days[i].type==='dry'?'selected':''}>🟩 건조</option>
+          <option value="mucus" ${cycle.days[i].type==='mucus'?'selected':''}>🚶 점액</option>
+          <option value="peak" ${cycle.days[i].type==='peak'?'selected':''}>⭐ 피크</option>
+        </select>
+      `}
     </td>`;
   }
   html += `</tr>`;
 
-  // 2. 점액 모양/느낌 (터치 시 박스 확장 인풋 전환)
+  // 2. 점액 모양/느낌 (3. 팝업창 패널 작동 연결)
   html += `<tr><td class="rl">점액 모양/느낌</td>`;
   for (let i = 0; i < DAYS; i++) {
     const mState = cycle.days[i].mucus_state || '';
-    html += `<td class="td-text-cell" id="cell-mucus-${i}" onclick="makeExpandInput(${i}, 'mucus_state', '${mState}')">
+    html += `<td class="td-text-cell" onclick="openTextP(${ci}, ${i}, 'mucus_state', '${mState}')">
       ${mState}
     </td>`;
   }
   html += `</tr>`;
 
-  // 3. 감정 그래프 (클릭 시 1영역 선택 상태로 빌드)
+  // 3. 감정 그래프 (드롭다운 즉시 노출 롤백 완료)
   html += `<tr><td class="rl emo">감정 그래프</td>`;
   for (let i = 0; i < DAYS; i++) {
-    const isSel = (selectedDayIndex === i && selectedFieldType === 'emo') ? ' selected-cell' : '';
-    html += `<td class="td-emo${isSel}" onclick="selectCell(${i}, 'emo')">
+    html += `<td class="td-emo">
       <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
         ${emoSVG(cycle.days[i].emo)}
       </div>
+      <select class="inline-select" onchange="inlineSave(${i}, 'emo', this.value)">
+        <option value="" ${cycle.days[i].emo===''?'selected':''}>-</option>
+        <option value="up" ${cycle.days[i].emo==='up'?'selected':''}>↑ 좋을 때</option>
+        <option value="down" ${cycle.days[i].emo==='down'?'selected':''}>↓ 우울할 때</option>
+        <option value="right" ${cycle.days[i].emo==='right'?'selected':''}>→ 화날 때</option>
+        <option value="left" ${cycle.days[i].emo==='left'?'selected':''}>← 도망가고 싶을 때</option>
+        <option value="circle" ${cycle.days[i].emo==='circle'?'selected':''}>○ 지배적 감정 없음</option>
+      </select>
     </td>`;
   }
   html += `</tr>`;
@@ -543,11 +528,11 @@ function render() {
     <td colspan="${DAYS}" class="td-graph-wrap" style="border-left:0.5px solid var(--border);">${graphSVG(cycle.days)}</td>
   </tr>`;
 
-  // 5. 메모 (터치 시 박스 확장 인풋 전환)
+  // 5. 메모 (3. 팝업창 패널 작동 연결)
   html += `<tr><td class="rl">메모</td>`;
   for (let i = 0; i < DAYS; i++) {
     const m = cycle.days[i].memo || '';
-    html += `<td class="td-text-cell" id="cell-memo-${i}" onclick="makeExpandInput(${i}, 'memo', '${m}')">
+    html += `<td class="td-text-cell" onclick="openTextP(${ci}, ${i}, 'memo', '${m}')">
       ${m}
     </td>`;
   }
@@ -556,76 +541,61 @@ function render() {
   html += `<tr><td class="rl" style="height:8px; background: transparent; border:none;"></td>${Array(DAYS).fill('<td style="height:8px; border:none;"></td>').join('')}</tr>`;
 
   document.getElementById('mt').innerHTML = html;
+
+  // 하단 고정 범례 출력
+  const types = [
+    {type:'period',label:'월경'},{type:'spotting',label:'피비침'},
+    {type:'dry',label:'건조'},{type:'mucus',label:'점액'},
+    {type:'peak',label:'피크'},{type:'post1',label:'피크+1'},
+    {type:'post2',label:'피크+2'},{type:'post3',label:'피크+3'},
+  ];
+  document.getElementById('legend-row').innerHTML = types.map(t =>
+    `<div class="legend-item"><div class="legend-icon">${recSVG(t.type)}</div><span>${t.label}</span></div>`
+  ).join('');
 }
 
-// ── 1영역 셀 선택 제어 로직 ─────────────────────────────────
-function selectCell(dayIdx, field) {
-  // 동일한 칸을 한 번 더 누르면 선택 해제
-  if (selectedDayIndex === dayIdx && selectedFieldType === field) {
-    clearSelection();
-  } else {
-    selectedDayIndex = dayIdx;
-    selectedFieldType = field;
-  }
-  render(); // 주황색 하이라이트 토글 반영
-}
-
-function clearSelection() {
-  selectedDayIndex = null;
-  selectedFieldType = null;
-}
-
-// ── 2영역 범례 버튼 클릭 시 데이터 실시간 주입 인젝터 ──────────────────
-function injectValue(field, value) {
-  if (selectedDayIndex === null || selectedFieldType !== field) {
-    alert("먼저 상단 표(1영역)에서 알맞은 칸을 선택한 뒤 메뉴를 눌러주세요! 🌿");
-    return;
-  }
-  
+// ── 인라인 드롭다운 변경 동기화 ──────────────────────────
+function inlineSave(dayIdx, field, value) {
   const cycle = cycles[currentViewIndex];
-  cycle.days[selectedDayIndex][field] = value;
-  
-  // 주입 완료 후 선택 영역 유지 또는 해제 조율 (연속 입력을 위해 해제 안 함)
+  cycle.days[dayIdx][field] = value;
   render();
   saveToCloud();
 }
 
-// ── 다. 텍스트 셀 터치 시 무제한 확장 인풋 상자 전환 시스템 ───────────────
-function makeExpandInput(dayIdx, field, currentVal) {
-  const targetId = field === 'memo' ? `cell-memo-${dayIdx}` : `cell-mucus-${dayIdx}`;
-  const cell = document.getElementById(targetId);
+// ── 3. 팝업창 패널 입력/수정 제어 엔진 (새로 추가) ───────────────────
+function openTextP(ci, di, field, currentVal) {
+  textEditCi = ci; textEditDi = di; textEditField = field;
   
-  if (cell.querySelector('textarea')) return;
-
-  // 전체 화면이 다 보이는 유연한 텍스트에어리어 배치
-  const textarea = document.createElement('textarea');
-  textarea.className = 'inline-expand-input';
-  textarea.value = currentVal;
+  const sd = cycles[ci].startDate;
+  const fieldTitle = field === 'memo' ? '메모 편집' : '점액 모양/느낌 편집';
   
-  cell.appendChild(textarea);
-  textarea.focus();
-
-  // 입력 완료 및 컴팩트 닫기 콜백
-  function commitText() {
-    const newVal = textarea.value.trim();
-    const cycle = cycles[currentViewIndex];
-    cycle.days[dayIdx][field] = newVal;
-    textarea.remove();
-    render();
-    saveToCloud();
-  }
-
-  // 모바일 입력 편의성 (포커스를 잃으면 자동 압축 저장)
-  textarea.addEventListener('blur', commitText);
-  textarea.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { // 시프트 없이 엔터 치면 저장 완료
-      e.preventDefault();
-      commitText();
-    }
-  });
+  document.getElementById('text-panel-title').textContent = `${di+1}일차 (${fmt(sd,di)}) · ${fieldTitle}`;
+  document.getElementById('text-panel-label').textContent = field === 'memo' ? '메모 내용 입력' : '점액 상태 입력';
+  
+  const input = document.getElementById('popup-input');
+  input.value = currentVal;
+  
+  document.getElementById('text-overlay').classList.add('open');
+  document.getElementById('text-panel').classList.add('open');
+  
+  // 모바일 편의를 위해 키보드 즉시 호출 포커싱
+  setTimeout(() => input.focus(), 150);
 }
 
-// ── Date panel (시작 날짜 오버레이 관리) ───────────────────────────
+function closeTextP() {
+  document.getElementById('text-overlay').classList.remove('open');
+  document.getElementById('text-panel').classList.remove('open');
+}
+
+function saveTextP() {
+  const value = document.getElementById('popup-input').value.trim();
+  cycles[textEditCi].days[textEditDi][textEditField] = value;
+  closeTextP();
+  render();
+  saveToCloud();
+}
+
+// ── Date panel ───────────────────────────────────────────
 function openDateP(ci) {
   editDateCi = ci; const cycle = cycles[ci];
   document.getElementById('date-title').textContent = `주기 ${ci+1} 시작일 수정`;
@@ -650,7 +620,7 @@ function deleteCycle() {
   deleted._deletedAt = new Date().toISOString();
   trash.push(deleted);
   if (currentViewIndex >= cycles.length) { currentViewIndex = cycles.length - 1; }
-  clearSelection(); updateTrashBtn(); closeDateP(); render(); saveToCloud();
+  updateTrashBtn(); closeDateP(); render(); saveToCloud();
 }
 
 // ── Trash ────────────────────────────────────────────────
@@ -686,7 +656,7 @@ function restoreCycle(i) {
   const c = trash.splice(i, 1)[0]; delete c._deletedAt;
   cycles.push(c); cycles.sort((a,b) => (a.startDate||'').localeCompare(b.startDate||''));
   currentViewIndex = cycles.indexOf(c);
-  clearSelection(); updateTrashBtn(); closeTrash(); render(); saveToCloud();
+  updateTrashBtn(); closeTrash(); render(); saveToCloud();
 }
 function permDelete(i) {
   if (!confirm('영구 삭제 시 복구가 불가능합니다. 삭제할까요?')) return;
@@ -697,7 +667,7 @@ function permDelete(i) {
 function addCycle() {
   const today = new Date().toISOString().split('T')[0];
   cycles.push({ startDate: today, days: makeDays() });
-  currentViewIndex = cycles.length - 1; clearSelection(); render(); saveToCloud();
+  currentViewIndex = cycles.length - 1; render(); saveToCloud();
 }
 
 loadFromCloud();
