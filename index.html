@@ -84,7 +84,7 @@ body {
 /* SCROLL CONTAINER */
 .scroll-x { overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--border); }
 
-/* TABLE 기본 구조 고정 및 수직 늘어짐 방지 */
+/* TABLE */
 table { border-collapse: collapse; background: var(--surface); table-layout: fixed; width: max-content; }
 th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font-size: 11px; height: 38px; position: relative; }
 
@@ -95,9 +95,10 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 }
 .rl.emo { background: #fdf6e3; color: #a07030; }
 
-.cycle-sep td { background: #f0f0ec; font-size: 11px; color: var(--text-muted); padding: 4px 0; height: auto; }
+/* 날짜 구분 행 z-index 하향 조정하여 클릭 방해 금지 */
+.cycle-sep td { background: #f0f0ec; font-size: 11px; color: var(--text-muted); padding: 4px 0; height: auto; z-index: 1; }
 .cycle-sep .sep-label {
-  position: sticky; left: 0; z-index: 12; background: #e8e8e4; text-align: left;
+  position: sticky; left: 0; z-index: 2; background: #e8e8e4; text-align: left;
   padding: 6px 8px; font-size: 12px; font-weight: 500; color: var(--text);
   border-right: 1.5px solid var(--border-strong); cursor: pointer;
 }
@@ -105,9 +106,9 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 .th-d { width: var(--cell); min-width: var(--cell); font-size: 10px; color: var(--text-light); background: #f0f0ec; }
 .td-date { width: var(--cell); font-size: 9px; color: var(--text-muted); height: 22px; background: #fafaf8; }
 
-/* 데이터 칸 정렬 바인딩 */
-.td-rec { width: var(--cell); height: 44px; cursor: pointer; overflow: hidden; }
-.td-emo { width: var(--cell); height: 34px; cursor: pointer; overflow: hidden; }
+/* 기록 표시 및 드롭다운 z-index 상향 (터치 씹힘 해결) */
+.td-rec { width: var(--cell); height: 44px; cursor: pointer; overflow: hidden; z-index: 5; }
+.td-emo { width: var(--cell); height: 34px; cursor: pointer; overflow: hidden; z-index: 5; }
 .td-graph-wrap { padding: 0; border: none; background: #fffdf9; height: 44px; }
 
 /* 텍스트 입력 셀 스타일 */
@@ -117,28 +118,29 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 }
 .td-text-cell:active { background: #f5f5f5; }
 
-/* 인라인 즉시 드롭다운 투명 배치 안정화 */
+/* 인라인 즉시 드롭다운 투명 시스템 활성화 */
 .inline-select {
-  position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 5;
+  position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;
 }
 .inline-input {
   position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px);
   border: 1.5px solid var(--text); border-radius: 4px; padding: 2px;
-  font-size: 11px; font-family: inherit; text-align: center; outline: none; z-index: 6;
+  font-size: 11px; font-family: inherit; text-align: center; outline: none; z-index: 20;
   background: #fff;
 }
 
-/* 메모 툴팁 팝업 */
+/* ── 툴팁 팝업 기능 완벽 복구 및 모바일 대응 ── */
 .td-text-cell .tooltip {
   display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
-  background: rgba(30, 30, 30, 0.9); color: #fff; padding: 6px 10px; border-radius: 6px;
+  background: rgba(30, 30, 30, 0.95); color: #fff; padding: 6px 10px; border-radius: 6px;
   font-size: 11px; line-height: 1.4; white-space: normal; word-break: break-all; z-index: 99;
   width: max-content; max-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); text-align: left;
 }
 .td-text-cell .tooltip::after {
   content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-  border-width: 5px; border-style: solid; border-color: rgba(30, 30, 30, 0.9) transparent transparent transparent;
+  border-width: 5px; border-style: solid; border-color: rgba(30, 30, 30, 0.95) transparent transparent transparent;
 }
+/* 마우스 커서 올릴 때(PC) 및 터치 유지 시 노출 */
 .td-text-cell:hover .tooltip { display: block; }
 
 .is-today { box-shadow: inset 0 0 0 2px var(--green); }
@@ -359,7 +361,7 @@ function getComputedDayType(cycle, index) {
   return cycle.days[index].type || 'none';
 }
 
-// ── 픽토그램 SVG 렌더링 엔진 (크기 조절 정상화) ───────────────────────
+// ── 픽토그램 SVG 렌더링 엔진 ──────────────────────────────────
 const humanPath = `<path d="M14,6 C15.1,6 16,5.1 16,4 C16,2.9 15.1,2 14,2 C12.9,2 12,2.9 12,4 C12,5.1 12.9,6 14,6 Z M14,7 C12.5,7 10,7.8 10,9.3 L10,15 C10,15.6 10.4,16 11,16 C11.6,16 12,15.6 12,15 L12,11 L13,11 L13,23 C13,23.6 13.4,24 14,24 C14.6,24 15,23.6 15,23 L15,11 L16,11 L16,15 C16,15.6 16.4,16 17,16 C17.6,16 18,15.6 18,15 L18,9.3 C18,7.8 15.5,7 14,7 Z" fill="#1a1a1a"/>`;
 
 function recSVG(type) {
@@ -389,12 +391,13 @@ function emoSVG(k) {
   return `<svg viewBox="0 0 26 30" style="width:100%; height:100%; display:block;"><text x="13" y="22" text-anchor="middle" font-size="16" font-weight="500" fill="${e.color}">${e.sym}</text></svg>`;
 }
 
+// ── 감정선 연동 엔진 개편 (드롭다운 기호화 연동완료) ──────────────────
 function graphSVG(days) {
   const W = CELL * DAYS;
   const pts = [];
   for (let i = 0; i < DAYS; i++) {
     const k = days[i].emo;
-    if (k && EMO[k]) pts.push({x: i*CELL + CELL/2, y: EMO[k].y, color: EMO[k].color});
+    if (k && EMO[k]) pts.push({x: i*CELL + CELL/2, y: EMO[k].y, color: EMO[k].color, sym: EMO[k].sym});
   }
   let lines = '';
   for (let p = 0; p < pts.length-1; p++) {
@@ -403,13 +406,18 @@ function graphSVG(days) {
     lines += `<line x1="${a.x}" y1="${a.y}" x2="${mx}" y2="${my}" stroke="${a.color}" stroke-width="1.8" stroke-linecap="round"/>`;
     lines += `<line x1="${mx}" y1="${my}" x2="${b.x}" y2="${b.y}" stroke="${b.color}" stroke-width="1.8" stroke-linecap="round"/>`;
   }
-  let dots = '';
-  for (const p of pts) dots += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${p.color}"/>`;
+  
+  // 단순 점이 아니라 실제 드롭다운과 매칭되는 화살표/기호가 선 위에 찍히도록 커스텀화
+  let symbols = '';
+  for (const p of pts) {
+    symbols += `<text x="${p.x}" y="${p.y + 4}" text-anchor="middle" font-size="12" font-weight="bold" fill="${p.color}">${p.sym}</text>`;
+  }
+
   const grid = `
     <line x1="0" y1="8"  x2="${W}" y2="8"  stroke="#eee" stroke-width="0.5" stroke-dasharray="3,3"/>
     <line x1="0" y1="22" x2="${W}" y2="22" stroke="#eee" stroke-width="0.5" stroke-dasharray="3,3"/>
     <line x1="0" y1="36" x2="${W}" y2="36" stroke="#eee" stroke-width="0.5" stroke-dasharray="3,3"/>`;
-  return `<svg width="${W}" height="${GH}" viewBox="0 0 ${W} ${GH}" style="display:block;overflow:visible;">${grid}${lines}${dots}</svg>`;
+  return `<svg width="${W}" height="${GH}" viewBox="0 0 ${W} ${GH}" style="display:block;overflow:visible;">${grid}${lines}${symbols}</svg>`;
 }
 
 // ── Date helpers ─────────────────────────────────────────
@@ -452,7 +460,7 @@ function render() {
   const ci = currentViewIndex;
   const sd = cycle.startDate;
 
-  // Day 순서 라인
+  // 0. Day 번호 라인
   html += `<tr class="cycle-sep">
     <td class="sep-label" onclick="openDateP(${ci})">${sd ? fmtFull(sd) : '날짜 미설정'} ✎</td>`;
   for (let i = 0; i < DAYS; i++) html += `<td class="th-d">${i+1}</td>`;
@@ -463,7 +471,7 @@ function render() {
   for (let i = 0; i < DAYS; i++) html += `<td class="td-date">${fmt(sd,i)}</td>`;
   html += `</tr>`;
 
-  // 1. 기록 표시
+  // 1. 기록 표시 (z-index 충돌 패치 완료)
   html += `<tr><td class="rl">기록 표시</td>`;
   for (let i = 0; i < DAYS; i++) {
     const today = isToday(sd, i);
@@ -489,12 +497,13 @@ function render() {
   }
   html += `</tr>`;
 
-  // 2. 점액 모양/느낌
+  // 2. 점액 모양/느낌 (인라인 툴팁 연동 추가)
   html += `<tr><td class="rl">점액 모양/느낌</td>`;
   for (let i = 0; i < DAYS; i++) {
     const mState = cycle.days[i].mucus_state || '';
-    html += `<td class="td-text-cell" id="cell-mucus-${i}" onclick="makeInlineInput(${i}, 'mucus_state', '${mState}')">
+    html += `<td class="td-text-cell" id="cell-mucus-${i}" onclick="makeInlineInput(${i}, 'mucus_state', '${mState}')" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)">
       ${mState}
+      ${mState ? `<div class="tooltip">${mState}</div>` : ''}
     </td>`;
   }
   html += `</tr>`;
@@ -518,19 +527,19 @@ function render() {
   }
   html += `</tr>`;
 
-  // 4. 감정선
+  // 4. 감정선 (화살표 대응 완료)
   html += `<tr>
     <td class="rl emo" style="font-size:10px;">감정선</td>
     <td colspan="${DAYS}" class="td-graph-wrap" style="border-left:0.5px solid var(--border);">${graphSVG(cycle.days)}</td>
   </tr>`;
 
-  // 5. 메모
+  // 5. 메모 (인라인 툴팁 연동 추가)
   html += `<tr><td class="rl">메모</td>`;
   for (let i = 0; i < DAYS; i++) {
     const m = cycle.days[i].memo || '';
-    html += `<td class="td-text-cell" id="cell-memo-${i}" onclick="makeInlineInput(${i}, 'memo', '${m}')">
+    html += `<td class="td-text-cell" id="cell-memo-${i}" onclick="makeInlineInput(${i}, 'memo', '${m}')" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)">
       ${m}
-      ${m ? `<div class="tooltip" id="tip-${currentViewIndex}-${i}">${m}</div>` : ''}
+      ${m ? `<div class="tooltip">${m}</div>` : ''}
     </td>`;
   }
   html += `</tr>`;
@@ -539,7 +548,7 @@ function render() {
 
   document.getElementById('mt').innerHTML = html;
 
-  // 하단 범례 갱신
+  // 하단 범례 동적 세팅
   const types = [
     {type:'period',label:'월경'},{type:'spotting',label:'피비침'},
     {type:'dry',label:'건조'},{type:'mucus',label:'점액'},
@@ -547,11 +556,11 @@ function render() {
     {type:'post2',label:'피크+2'},{type:'post3',label:'피크+3'},
   ];
   document.getElementById('legend-row').innerHTML = types.map(t =>
-    `<div class="legend-item" style="width:28px; height:36px; display:inline-block; margin-right:4px;">${recSVG(t.type)}</div><span style="font-size:11px; margin-right:12px; color:var(--text-muted);">${t.label}</span>`
+    `<div style="display:inline-flex; align-items:center; margin-right:12px; margin-bottom:6px;"><div style="width:24px; height:30px; display:inline-block; margin-right:4px; vertical-align:middle;">${recSVG(t.type)}</div><span style="font-size:11px; color:var(--text-muted);">${t.label}</span></div>`
   ).join('');
 }
 
-// ── 인라인 드롭다운 자동 데이터 바인딩 ──────────────────────────
+// ── 인라인 드롭다운 변경사항 즉시 동기화 ──────────────────────────
 function inlineSave(dayIdx, field, value) {
   const cycle = cycles[currentViewIndex];
   cycle.days[dayIdx][field] = value;
@@ -559,12 +568,16 @@ function inlineSave(dayIdx, field, value) {
   saveToCloud();
 }
 
-// ── 인라인 텍스트 동적 세팅 ──────────────────────────────────
+// ── 인라인 텍스트 박스 동적 활성화 엔진 ─────────────────────────────
 function makeInlineInput(dayIdx, field, currentVal) {
   const targetId = field === 'memo' ? `cell-memo-${dayIdx}` : `cell-mucus-${dayIdx}`;
   const cell = document.getElementById(targetId);
   
   if (cell.querySelector('input')) return;
+
+  // 텍스트 박스가 열려있는 동안에는 툴팁 임시 비활성화
+  const tooltip = cell.querySelector('.tooltip');
+  if (tooltip) tooltip.style.display = 'none';
 
   const input = document.createElement('input');
   input.type = 'text';
@@ -587,11 +600,24 @@ function makeInlineInput(dayIdx, field, currentVal) {
   input.addEventListener('blur', commitText);
 }
 
+// ── 모바일 및 PC 통합 마우스 커서 호버 제어 로직 ───────────────────────
+function showTooltip(cell) {
+  if (cell.querySelector('input')) return; // 입력 상자가 활성화된 칸은 패스
+  const tip = cell.querySelector('.tooltip');
+  if (tip) tip.style.display = 'block';
+}
+
+function hideTooltip(cell) {
+  const tip = cell.querySelector('.tooltip');
+  if (tip) tip.style.display = 'none';
+}
+
+// 바탕화면 터치 시 노출 중이던 모든 모바일 툴팁 일괄 소멸
 document.addEventListener('click', () => {
   document.querySelectorAll('.tooltip').forEach(tip => tip.style.display = 'none');
 });
 
-// ── Date panel (시작 날짜 오버레이 관리) ───────────────────────────
+// ── Date panel (시작 날짜 제어 전용 모달창) ───────────────────────────
 function openDateP(ci) {
   editDateCi = ci; const cycle = cycles[ci];
   document.getElementById('date-title').textContent = `주기 ${ci+1} 시작일 수정`;
