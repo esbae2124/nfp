@@ -127,24 +127,28 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 .td-emo:focus-within { box-shadow: inset 0 0 0 2px #EF9F27 !important; }
 .td-graph-wrap { padding: 0; border: none; background: #fffdf9; height: 44px; z-index: 1; }
 
-.td-text-cell/* 자동 행갈이 및 한 행에 5글자 최적화 (이 부분만 교체!) */
+/* 브라우저 강제 확대를 방지하고 무조건 5글자 쑤셔넣는 절대 코드 */
 .td-text-cell {
   width: var(--cell);
   max-width: var(--cell);
   min-height: 38px;
   height: auto;
   cursor: pointer;
-  font-size: 9.5px;          /* 글자 크기를 살짝 미세조정 */
+  font-size: 11px;           /* 브라우저가 거부감 안 가질 안전한 크기 */
   color: var(--text);
-  padding: 4px 1px;          /* 좌우 여백을 줄여서 공간 확보 */
-  line-height: 1.2;
+  padding: 4px 0px;          /* 좌우 여백 제로 */
+  line-height: 1.1;
   white-space: normal !important;
   word-wrap: break-word;
-  word-break: break-all;     /* 글자가 5글자 단위로 딱 끊어져 내려가도록 설정 */
+  word-break: break-all;     /* 5글자 단위 강제 컷 */
   display: table-cell;
   vertical-align: middle;
   z-index: 10;
-  letter-spacing: -0.5px;    /* 자간을 자석처럼 찰떡으로 좁힘 */
+  letter-spacing: -1px;      /* 자간을 바짝 밀착 */
+  
+  /* 🔥 핵심 치트키: 글자 전체를 가로로 82% 찌그러뜨려서 5글자 공간 확보 */
+  transform: scaleX(0.82);   
+  transform-origin: center;
 }
 .td-text-cell:active { background: #f5f5f5; }
 
