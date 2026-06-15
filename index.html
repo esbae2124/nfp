@@ -53,7 +53,18 @@ body {
   background: var(--surface); border-bottom: 0.5px solid var(--border);
   padding: 12px 16px; display: flex; align-items: center; gap: 8px;
 }
-.header h1 { font-size: 16px; font-weight: 500; flex: 1; }
+.header h1 { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 8px; flex: 1; }
+
+/* ── 실시간 클라우드 상태 표시기 디자인 ── */
+.sync-status {
+  font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 20px; transition: all 0.3s ease; display: inline-block;
+}
+.sync-status.none { display: none; }
+.sync-status.syncing { background: #f0f0ec; color: var(--text-muted); }
+.sync-status.saving { background: #fff1db; color: #e28743; animation: blink 1s infinite ease-in-out; }
+.sync-status.saved { background: #e6f6f0; color: var(--green); }
+@keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
 .header .actions { display: flex; gap: 6px; }
 
 .btn-hd {
@@ -112,7 +123,8 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 .td-date { width: var(--cell); font-size: 9px; color: var(--text-muted); height: 22px; background: #fafaf8; }
 
 .td-rec { width: var(--cell); height: 44px; cursor: pointer; overflow: hidden; position: relative; z-index: 10; }
-.td-emo { width: var(--cell); height: 34px; cursor: pointer; overflow: hidden; position: relative; z-index: 10; }
+.td-emo { width: var(--cell); height: 34px; cursor: pointer; overflow: hidden; position: relative; z-index: 10; outline: none; }
+.td-emo:focus-within { box-shadow: inset 0 0 0 2px #EF9F27 !important; }
 .td-graph-wrap { padding: 0; border: none; background: #fffdf9; height: 44px; z-index: 1; }
 
 /* 자동 행갈이 */
@@ -185,7 +197,7 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 <div id="loading-bar"></div>
 
 <div class="header">
-  <h1>자연주기 기록</h1>
+  <h1>자연주기 기록 <span id="sync-indicator" class="sync-status none"></span></h1>
   <div class="actions">
     <button class="btn-hd" onclick="openTrash()" id="trash-btn" style="display:none;">🗑 <span id="trash-count"></span></button>
     <button class="btn-hd primary" onclick="addCycle()">+ 새 주기</button>
@@ -245,8 +257,7 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 </div>
 
 <script>
-// 신규 생성하신 주소 정확하게 반영 완료했습니다!
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyF-BFyyf92iDbmDdLuQscAMfYxhoGknH5TW4Spsssxo80Kxezw6D45WSvY3_ar4xhINQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM7goGB_yuBAkNk6RaNyzaVKVvNEcGXoBXL5yWgGuQT5ir6C_EaZ2yl6K3MOAHcZJFEQ/exec";
 
 const DAYS = 32;
 const CELL = 34;
@@ -265,6 +276,18 @@ let trash  = [];
 let currentViewIndex = 0;
 let textEditCi = null, textEditDi = null, textEditField = null;
 
+// ── 클라우드 상태 알리미 제어 모듈 ──
+function updateStatus(state) {
+  const el = document.getElementById('sync-indicator');
+  el.className = "sync-status " + state;
+  if (state === 'syncing') el.textContent = "🔄 동기화 중...";
+  else if (state === 'saving') el.textContent = "☁️ 저장 중...";
+  else if (state === 'saved') {
+    el.textContent = "✅ 저장 완료";
+    setTimeout(() => { if(el.classList.contains('saved')) el.className = "sync-status none"; }, 1500);
+  }
+}
+
 function showLoading(show) {
   document.getElementById('loading-bar').style.display = show ? 'block' : 'none';
 }
@@ -273,22 +296,17 @@ function makeDays() {
   return Array.from({length:DAYS}, () => ({type:'none', mucus_state:'', emo:'', memo:''}));
 }
 
-// ── 에러가 나도 무조건 화면을 렌더링하는 철벽 수비 로드 엔진 ──
 async function loadFromCloud() {
   showLoading(true);
+  updateStatus('syncing');
   
-  // 1단계: 브라우저가 기억하던 내용 선 복구
   try {
     const localData = localStorage.getItem('nfp-v2');
-    if (localData) { 
-      cycles = JSON.parse(localData); 
-      currentViewIndex = cycles.length - 1;
-    }
+    if (localData) { cycles = JSON.parse(localData); currentViewIndex = cycles.length - 1; }
     const localTrash = localStorage.getItem('nfp-v2-trash');
     if (localTrash) { trash = JSON.parse(localTrash); updateTrashBtn(); }
   } catch(e) { console.error("로컬 저장소 로드 실패", e); }
 
-  // 2단계: 클라우드 연동 시도
   try {
     const response = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "load" }) });
     const result = await response.json();
@@ -300,7 +318,6 @@ async function loadFromCloud() {
   } catch (e) {
     console.error("클라우드 데이터 로드 실패", e);
   } finally {
-    // 3단계: 둘 다 비어있을 때 터짐 방지 기본 생성 규칙 안전망
     if (!cycles || cycles.length === 0) {
       const today = new Date().toISOString().split('T')[0];
       cycles = [{ startDate: today, days: makeDays() }];
@@ -308,17 +325,24 @@ async function loadFromCloud() {
     }
     render();
     showLoading(false);
+    updateStatus('none');
   }
 }
 
 async function saveToCloud() {
   showLoading(true);
+  updateStatus('saving');
   localStorage.setItem('nfp-v2', JSON.stringify(cycles));
   localStorage.setItem('nfp-v2-trash', JSON.stringify(trash));
   try {
     await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "save", data: cycles }) });
-  } catch (e) { console.error("클라우드 저장 실패", e); }
-  finally { showLoading(false); }
+    updateStatus('saved');
+  } catch (e) { 
+    console.error("클라우드 저장 실패", e);
+    updateStatus('none');
+  } finally { 
+    showLoading(false); 
+  }
 }
 
 function updateTrashBtn() {
@@ -466,11 +490,11 @@ function render() {
     const today = isToday(sd, i);
     const future = isFuture(sd, i);
     const cls = today ? ' is-today' : '';
-    html += `<td class="td-emo${cls}">
+    html += `<td class="td-emo${cls}" tabindex="0" onkeydown="handleEmoKeyDown(event, ${i})">
       <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
         ${emoSVG(cycle.days[i].emo)}
       </div>
-      <select class="inline-select" onchange="inlineSave(${i}, 'emo', this.value)">
+      <select class="inline-select" onchange="inlineSave(${i}, 'emo', this.value)" tabindex="-1">
         <option value="" ${cycle.days[i].emo===''?'selected':''}>-</option>
         <option value="up" ${cycle.days[i].emo==='up'?'selected':''}>↑ 좋을 때</option>
         <option value="down" ${cycle.days[i].emo==='down'?'selected':''}>↓ 우울할 때</option>
@@ -500,6 +524,26 @@ function render() {
 
 function inlineSave(dayIdx, field, value) {
   const cycle = cycles[currentViewIndex]; cycle.days[dayIdx][field] = value; render(); saveToCloud();
+}
+
+function handleEmoKeyDown(event, dayIdx) {
+  let matchedValue = null;
+  let shouldTrigger = false;
+
+  switch(event.key) {
+    case 'ArrowUp': matchedValue = 'up'; shouldTrigger = true; break;
+    case 'ArrowDown': matchedValue = 'down'; shouldTrigger = true; break;
+    case 'ArrowRight': matchedValue = 'right'; shouldTrigger = true; break;
+    case 'ArrowLeft': matchedValue = 'left'; shouldTrigger = true; break;
+    case '.': matchedValue = 'circle'; shouldTrigger = true; break;
+    case 'Backspace':
+    case 'Delete': matchedValue = ''; shouldTrigger = true; break;
+  }
+
+  if (shouldTrigger) {
+    event.preventDefault();
+    inlineSave(dayIdx, 'emo', matchedValue);
+  }
 }
 
 function openTextP(ci, di, field, currentVal) {
