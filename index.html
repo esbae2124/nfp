@@ -135,7 +135,7 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
   cursor: pointer;
   font-size: 10px;           /* 원본 크기 그대로 유지 */
   color: var(--text);
-  padding: 4px 1px;          /* 좌우 여백 최소화 */
+  padding: 4px 1px;          /* 좌우 패딩을 1px로 최소화 */
   line-height: 1.3;
   white-space: normal !important;
   word-wrap: break-word;
@@ -144,8 +144,8 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
   vertical-align: middle;
   z-index: 10;
   
-  /* 🔥 자간을 -1px로 미세조정하여 PC와 모바일 모두 5글자가 들어가도록 강제 유도 */
-  letter-spacing: -1px;    
+  /* 🔥 핵심 마감재: 자간을 0.7픽셀만 바짝 좁혀서 5글자 공간을 억지로 만들어냄 */
+  letter-spacing: -0.7px;    
 }
 .td-text-cell:active { background: #f5f5f5; }
 
@@ -180,6 +180,26 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
   font-size: 14px; font-family: inherit; background: var(--surface); color: var(--text); width: 100%; outline: none;
 }
 .field input:focus { border-color: var(--text); }
+
+/* 여러 줄 입력 상자(textarea) 전용 세련된 디자인 */
+.field textarea {
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+  outline: none;
+  resize: none;            /* 사용자가 마우스로 상자 크기를 마음대로 늘리지 못하게 고정 */
+  min-height: 90px;        /* 한 손으로 치기 딱 좋은 넉넉한 세로 높이 */
+  line-height: 1.4;
+}
+.field textarea:focus { 
+  border-color: var(--text); 
+}
+
 .btn-save {
   width: 100%; background: var(--text); color: #fff; border: none; border-radius: 12px; padding: 15px;
   font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; margin-top: 12px;
@@ -264,7 +284,7 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
   <div class="field-row">
     <div class="field">
       <label id="text-panel-label">내용 입력</label>
-      <input type="text" id="popup-input" placeholder="여기에 작성하세요..." onkeydown="handlePopupKeyDown(event)"/>
+      <textarea id="popup-input" placeholder="여기에 작성하세요...&#10;(Shift + Enter로 행갈이, Enter로 저장)"></textarea>
     </div>
   </div>
   <button class="btn-save" onclick="saveTextP()">저장하기</button>
@@ -626,10 +646,27 @@ function openTextP(ci, di, field, currentVal) {
   const sd = cycles[ci].startDate;
   document.getElementById('text-panel-title').textContent = `${di+1}일차 (${sd ? sd : '날짜미설정'}) · ${field === 'memo' ? '메모 편집' : '점액 모양/느낌 편집'}`;
   document.getElementById('text-panel-label').textContent = field === 'memo' ? '메모 내용 입력' : '점액 상태 입력';
-  const input = document.getElementById('popup-input'); input.value = currentVal;
-  document.getElementById('text-overlay').classList.add('open'); document.getElementById('text-panel').classList.add('open');
+  
+  const input = document.getElementById('popup-input'); 
+  input.value = currentVal;
+  
+  // 💥 찾으시던 키보드 리스너 코드가 이 자리에 쏙 조립되어 들어갑니다!
+  input.onkeydown = function(event) {
+    if (event.key === 'Enter') {
+      if (event.shiftKey) {
+        return; // Shift + Enter는 줄바꿈 허용
+      } else {
+        event.preventDefault(); // 그냥 Enter는 줄바꿈 막고
+        saveTextP();            // 즉시 저장!
+      }
+    }
+  };
+  
+  document.getElementById('text-overlay').classList.add('open'); 
+  document.getElementById('text-panel').classList.add('open');
   setTimeout(() => input.focus(), 150);
 }
+
 function closeTextP() { document.getElementById('text-overlay').classList.remove('open'); document.getElementById('text-panel').classList.remove('open'); }
 function saveTextP() { const value = document.getElementById('popup-input').value.trim(); cycles[textEditCi].days[textEditDi][textEditField] = value; closeTextP(); render(); saveToCloud(); }
 
