@@ -702,28 +702,27 @@ function openTextP(ci, di, field, currentVal) {
     }
   };
   
-  // 🖐️ [신규] 팝업창 베이지색 구역 터치 슬라이드로 배경 표 스크롤하기
+  // 🖐️ 팝업창 베이지색 구역 터치 슬라이드로 배경 표 스크롤하기
   const panel = document.getElementById('text-panel');
-  const scrollContainer = document.querySelector('.table-container') || document.body; // 내 코드의 표를 감싸는 스크롤 박스 선택자
+  
+  // 🔥 드디어 진짜 범인(.scroll-x)의 이름을 정확하게 입력했습니다!
+  const scrollContainer = document.querySelector('.scroll-x') || document.body;
   
   let touchStartX = 0;
   let scrollStartX = 0;
   
   panel.ontouchstart = function(e) {
-    // 입력창(textarea)이나 버튼을 누르고 비빌 때는 스크롤 안 되게 방어
     if (e.target.closest('#popup-input') || e.target.closest('.btn-chat-send')) return;
-    
     touchStartX = e.touches[0].clientX;
     scrollStartX = scrollContainer.scrollLeft;
   };
   
   panel.ontouchmove = function(e) {
     if (e.target.closest('#popup-input') || e.target.closest('.btn-chat-send')) return;
-    
     const touchCurrentX = e.touches[0].clientX;
-    const touchDiffX = touchStartX - touchCurrentX; // 손가락 움직인 거리 계산
+    const touchDiffX = touchStartX - touchCurrentX;
     
-    // 뒤쪽 표를 부드럽게 동기화해서 스크롤 시킴
+    // 이제 진짜 .scroll-x 상자의 가로 스크롤을 슥슥 밀어버립니다!
     scrollContainer.scrollLeft = scrollStartX + touchDiffX;
   };
   
