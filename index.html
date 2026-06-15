@@ -559,89 +559,105 @@ function addDays(dateStr, n) { const d = new Date(dateStr); d.setDate(d.getDate(
 function fmt(dateStr, i) { if (!dateStr) return ''; const d = addDays(dateStr, i); return `${d.getMonth()+1}/${d.getDate()}`; }
 function isToday(dateStr, i) { if (!dateStr) return false; const t = new Date(); t.setHours(0,0,0,0); const d = addDays(dateStr, i); d.setHours(0,0,0,0); return d.getTime() === t.getTime(); }
 function isFuture(dateStr, i) { if (!dateStr) return false; const t = new Date(); t.setHours(0,0,0,0); const d = addDays(dateStr, i); d.setHours(0,0,0,0); return d > t; }
-
 function render() {
   let html = '';
   updateNavigationBar();
   if (!cycles || cycles.length === 0) return;
 
-  const cycle = cycles[currentViewIndex];
-  const ci = currentViewIndex;
-  const sd = cycle.startDate;
+  // 🔄 [최근 3개 추출] 전체 주기 배열에서 가장 최신 3개만 안전하게 잘라옵니다.
+  const recentCycles = cycles.slice(-3);
 
-  html += `<tr class="cycle-sep"><td class="sep-label" onclick="openDateP(${ci})">${sd ? sd : '날짜 미설정'} ✎</td>`;
-  for (let i = 0; i < DAYS; i++) html += `<td class="th-d">${i+1}</td>`;
-  html += `</tr>`;
+  // 🔁 잘라온 최근 주기를 차례대로 쌓아서 하나의 거대한 표로 합칩니다.
+  recentCycles.forEach((cycle) => {
+    // 이 주기가 원래 cycles 배열에서 몇 번째 실제 인덱스(ci)였는지 정확히 추적합니다.
+    const ci = cycles.indexOf(cycle);
+    const sd = cycle.startDate;
 
-  html += `<tr><td class="rl">날짜</td>`;
-  for (let i = 0; i < DAYS; i++) html += `<td class="td-date">${fmt(sd,i)}</td>`;
-  html += `</tr>`;
+    // 1행: 주기 구분선 & 날짜 (예: 2026-05-27 ✎) + 1~32 숫자
+    html += `<tr class="cycle-sep"><td class="sep-label" onclick="openDateP(${ci})">${sd ? sd : '날짜 미설정'} ✎</td>`;
+    for (let i = 0; i < DAYS; i++) html += `<td class="th-d">${i+1}</td>`;
+    html += `</tr>`;
 
-  html += `<tr><td class="rl">기록 표시</td>`;
-  for (let i = 0; i < DAYS; i++) {
-    const today = isToday(sd, i);
-    const future = isFuture(sd, i);
-    const cls = today ? ' is-today' : '';
-    const computedType = getComputedDayType(cycle, i);
-    
-    html += `<td class="td-rec${cls}">
-      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-        ${future ? '' : recSVG(computedType)}
-      </div>
-      ${future ? '' : `
-        <select class="inline-select" onchange="inlineSave(${i}, 'type', this.value)">
-          <option value="none" ${cycle.days[i].type==='none'?'selected':''}>-</option>
-          <option value="period" ${cycle.days[i].type==='period'?'selected':''}>🟥 월경</option>
-          <option value="spotting" ${cycle.days[i].type==='spotting'?'selected':''}>🔴 피비침</option>
-          <option value="dry" ${cycle.days[i].type==='dry'?'selected':''}>🟩 건조</option>
-          <option value="mucus" ${cycle.days[i].type==='mucus'?'selected':''}>🚶 점액</option>
-          <option value="peak" ${cycle.days[i].type==='peak'?'selected':''}>⭐ 피크</option>
+    // 2행: 실제 날짜 계산 행
+    html += `<tr><td class="rl">날짜</td>`;
+    for (let i = 0; i < DAYS; i++) html += `<td class="td-date">${fmt(sd,i)}</td>`;
+    html += `</tr>`;
+
+    // 3행: 기록 표시 (드롭다운 변경 시 정확한 주기 인덱스 ci를 넘겨줍니다)
+    html += `<tr><td class="rl">기록 표시</td>`;
+    for (let i = 0; i < DAYS; i++) {
+      const today = isToday(sd, i);
+      const future = isFuture(sd, i);
+      const cls = today ? ' is-today' : '';
+      const computedType = getComputedDayType(cycle, i);
+      
+      html += `<td class="td-rec${cls}">
+        <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+          ${future ? '' : recSVG(computedType)}
+        </div>
+        ${future ? '' : `
+          <select class="inline-select" onchange="inlineSave(${ci}, ${i}, 'type', this.value)">
+            <option value="none" ${cycle.days[i].type==='none'?'selected':''}>-</option>
+            <option value="period" ${cycle.days[i].type==='period'?'selected':''}>🟥 월경</option>
+            <option value="spotting" ${cycle.days[i].type==='spotting'?'selected':''}>🔴 피비침</option>
+            <option value="dry" ${cycle.days[i].type==='dry'?'selected':''}>🟩 건조</option>
+            <option value="mucus" ${cycle.days[i].type==='mucus'?'selected':''}>🚶 점액</option>
+            <option value="peak" ${cycle.days[i].type==='peak'?'selected':''}>⭐ 피크</option>
+          </select>
+        `}
+      </td>`;
+    }
+    html += `</tr>`;
+
+    // 4행: 점액 모양/느낌 (정확한 주기 ci 연동)
+    html += `<tr><td class="rl">점액 모양/느낌</td>`;
+    for (let i = 0; i < DAYS; i++) {
+      const mState = cycle.days[i].mucus_state || '';
+      html += `<td class="td-text-cell" onclick="openTextP(${ci}, ${i}, 'mucus_state', \`${mState}\`)">${mState}</td>`;
+    }
+    html += `</tr>`;
+
+    // 5행: 감정 그래프 (드롭다운 변경 시 주기 인덱스 ci 연동)
+    html += `<tr><td class="rl emo">감정 그래프</td>`;
+    for (let i = 0; i < DAYS; i++) {
+      const today = isToday(sd, i);
+      const future = isFuture(sd, i);
+      const cls = today ? ' is-today' : '';
+      html += `<td class="td-emo${cls}" tabindex="0" onkeydown="handleEmoKeyDown(event, ${i})">
+        <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+          ${emoSVG(cycle.days[i].emo)}
+        </div>
+        <select class="inline-select" onchange="inlineSave(${ci}, ${i}, 'emo', this.value)" tabindex="-1">
+          <option value="" ${cycle.days[i].emo===''?'selected':''}>-</option>
+          <option value="up" ${cycle.days[i].emo==='up'?'selected':''}>↑ 좋을 때</option>
+          <option value="down" ${cycle.days[i].emo==='down'?'selected':''}>↓ 우울할 때</option>
+          <option value="right" ${cycle.days[i].emo==='right'?'selected':''}>→ 화날 때</option>
+          <option value="left" ${cycle.days[i].emo==='left'?'selected':''}>← 도망가고 싶을 때</option>
+          <option value="circle" ${cycle.days[i].emo==='circle'?'selected':''}>○ 지배적 감정 없음</option>
         </select>
-      `}
-    </td>`;
-  }
-  html += `</tr>`;
+      </td>`;
+    }
+    html += `</tr>`;
 
-  html += `<tr><td class="rl">점액 모양/느낌</td>`;
-  for (let i = 0; i < DAYS; i++) {
-    const mState = cycle.days[i].mucus_state || '';
-    html += `<td class="td-text-cell" onclick="openTextP(${ci}, ${i}, 'mucus_state', \`${mState}\`)">${mState}</td>`;
-  }
-  html += `</tr>`;
+    // 6행: 감정선 그래프
+    html += `<tr><td class="rl emo" style="font-size:10px;">감정선</td><td colspan="${DAYS}" class="td-graph-wrap" style="border-left:0.5px solid var(--border);">${graphSVG(cycle.days)}</td></tr>`;
 
-  html += `<tr><td class="rl emo">감정 그래프</td>`;
-  for (let i = 0; i < DAYS; i++) {
-    const today = isToday(sd, i);
-    const future = isFuture(sd, i);
-    const cls = today ? ' is-today' : '';
-    html += `<td class="td-emo${cls}" tabindex="0" onkeydown="handleEmoKeyDown(event, ${i})">
-      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-        ${emoSVG(cycle.days[i].emo)}
-      </div>
-      <select class="inline-select" onchange="inlineSave(${i}, 'emo', this.value)" tabindex="-1">
-        <option value="" ${cycle.days[i].emo===''?'selected':''}>-</option>
-        <option value="up" ${cycle.days[i].emo==='up'?'selected':''}>↑ 좋을 때</option>
-        <option value="down" ${cycle.days[i].emo==='down'?'selected':''}>↓ 우울할 때</option>
-        <option value="right" ${cycle.days[i].emo==='right'?'selected':''}>→ 화날 때</option>
-        <option value="left" ${cycle.days[i].emo==='left'?'selected':''}>← 도망가고 싶을 때</option>
-        <option value="circle" ${cycle.days[i].emo==='circle'?'selected':''}>○ 지배적 감정 없음</option>
-      </select>
-    </td>`;
-  }
-  html += `</tr>`;
+    // 7행: 메모 (정확한 주기 ci 연동)
+    html += `<tr><td class="rl">메모</td>`;
+    for (let i = 0; i < DAYS; i++) {
+      const m = cycle.days[i].memo || '';
+      html += `<td class="td-text-cell" onclick="openTextP(${ci}, ${i}, 'memo', \`${m}\`)">${m}</td>`;
+    }
+    html += `</tr>`;
 
-  html += `<tr><td class="rl emo" style="font-size:10px;">감정선</td><td colspan="${DAYS}" class="td-graph-wrap" style="border-left:0.5px solid var(--border);">${graphSVG(cycle.days)}</td></tr>`;
+    // 8행: 주기 간격을 띄워주는 투명 공백 행
+    html += `<tr><td class="rl" style="height:8px; background: transparent; border:none;"></td>${Array(DAYS).fill('<td style="height:8px; border:none;"></td>').join('')}</tr>`;
+  });
 
-  html += `<tr><td class="rl">메모</td>`;
-  for (let i = 0; i < DAYS; i++) {
-    const m = cycle.days[i].memo || '';
-    html += `<td class="td-text-cell" onclick="openTextP(${ci}, ${i}, 'memo', \`${m}\`)">${m}</td>`;
-  }
-  html += `</tr>`;
-  html += `<tr><td class="rl" style="height:8px; background: transparent; border:none;"></td>${Array(DAYS).fill('<td style="height:8px; border:none;"></td>').join('')}</tr>`;
-  
+  // 최종 완성된 여러 주기의 표 데이터를 테이블 바디에 주입합니다.
   document.getElementById('mt').innerHTML = html;
 
+  // 🎨 하단 아이콘 범례(Legend) 그리기 구역
   const types = [{type:'period',label:'월경'},{type:'spotting',label:'피비침'},{type:'dry',label:'건조'},{type:'mucus',label:'점액'},{type:'peak',label:'피크'},{type:'post1',label:'피크+1'},{type:'post2',label:'피크+2'},{type:'post3',label:'피크+3'}];
   document.getElementById('legend-row').innerHTML = types.map(t => `<div class="legend-item"><div class="legend-icon">${recSVG(t.type)}</div><span>${t.label}</span></div>`).join('');
 }
@@ -679,13 +695,36 @@ function openTextP(ci, di, field, currentVal) {
   const input = document.getElementById('popup-input'); 
   input.value = currentVal;
   
-  // ⌨️ 이제 폰에서 엔터를 치면 자연스럽게 한 줄 내려갑니다! 
-  // PC 사용자를 위해 Ctrl+Enter 시 저장되는 치트키만 남겨둘게요.
   input.onkeydown = function(event) {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       saveTextP();
     }
+  };
+  
+  // 🖐️ [신규] 팝업창 베이지색 구역 터치 슬라이드로 배경 표 스크롤하기
+  const panel = document.getElementById('text-panel');
+  const scrollContainer = document.querySelector('.table-container') || document.body; // 내 코드의 표를 감싸는 스크롤 박스 선택자
+  
+  let touchStartX = 0;
+  let scrollStartX = 0;
+  
+  panel.ontouchstart = function(e) {
+    // 입력창(textarea)이나 버튼을 누르고 비빌 때는 스크롤 안 되게 방어
+    if (e.target.closest('#popup-input') || e.target.closest('.btn-chat-send')) return;
+    
+    touchStartX = e.touches[0].clientX;
+    scrollStartX = scrollContainer.scrollLeft;
+  };
+  
+  panel.ontouchmove = function(e) {
+    if (e.target.closest('#popup-input') || e.target.closest('.btn-chat-send')) return;
+    
+    const touchCurrentX = e.touches[0].clientX;
+    const touchDiffX = touchStartX - touchCurrentX; // 손가락 움직인 거리 계산
+    
+    // 뒤쪽 표를 부드럽게 동기화해서 스크롤 시킴
+    scrollContainer.scrollLeft = scrollStartX + touchDiffX;
   };
   
   document.getElementById('text-overlay').classList.add('open'); 
