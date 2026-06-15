@@ -181,8 +181,17 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 }
 .field input:focus { border-color: var(--text); }
 
-/* 여러 줄 입력 상자(textarea) 전용 세련된 디자인 */
+/* 입력창과 버튼을 가로로 정렬하는 컨테이너 */
+.chat-input-container {
+  display: flex;
+  align-items: flex-end; /* 입력창이 길어지면 버튼이 아래쪽에 고정되도록 */
+  gap: 8px;
+  width: 100%;
+}
+
+/* 텍스트 영역 가로 너비 유연하게 조절 */
 .field textarea {
+  flex: 1; /* 버튼 공간을 제외하고 꽉 채우기 */
   border: 1px solid var(--border-strong);
   border-radius: 10px;
   padding: 12px;
@@ -190,16 +199,33 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
   font-family: inherit;
   background: var(--surface);
   color: var(--text);
-  width: 100%;
   outline: none;
-  resize: none;            /* 사용자가 마우스로 상자 크기를 마음대로 늘리지 못하게 고정 */
-  min-height: 90px;        /* 한 손으로 치기 딱 좋은 넉넉한 세로 높이 */
+  resize: none;
+  min-height: 80px;
   line-height: 1.4;
 }
-.field textarea:focus { 
-  border-color: var(--text); 
-}
+.field textarea:focus { border-color: var(--text); }
 
+/* 동그란 카톡 스타일 전송/저장 버튼 */
+.btn-chat-send {
+  background: var(--text); /* 테마에 맞춘 어두운 톤 */
+  color: var(--surface);
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  flex-shrink: 0; /* 버튼 크기 고정 */
+  margin-bottom: 2px; /* 입력창 하단 밸런스 매칭 */
+}
+.btn-chat-send:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
 .btn-save {
   width: 100%; background: var(--text); color: #fff; border: none; border-radius: 12px; padding: 15px;
   font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; margin-top: 12px;
@@ -284,11 +310,14 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
   <div class="field-row">
     <div class="field">
       <label id="text-panel-label">내용 입력</label>
-      <textarea id="popup-input" placeholder="여기에 작성하세요...&#10;(Shift + Enter로 행갈이, Enter로 저장)"></textarea>
+      <div class="chat-input-container">
+        <textarea id="popup-input" placeholder="여기에 작성하세요... (Enter로 행갈이)"></textarea>
+        <button class="btn-chat-send" onclick="saveTextP()" title="저장">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
     </div>
   </div>
-  <button class="btn-save" onclick="saveTextP()">저장하기</button>
-</div>
 
 <div class="overlay" id="date-overlay" onclick="closeDateP()"></div>
 <div class="panel" id="date-panel">
@@ -650,15 +679,12 @@ function openTextP(ci, di, field, currentVal) {
   const input = document.getElementById('popup-input'); 
   input.value = currentVal;
   
-  // 💥 찾으시던 키보드 리스너 코드가 이 자리에 쏙 조립되어 들어갑니다!
+  // ⌨️ 이제 폰에서 엔터를 치면 자연스럽게 한 줄 내려갑니다! 
+  // PC 사용자를 위해 Ctrl+Enter 시 저장되는 치트키만 남겨둘게요.
   input.onkeydown = function(event) {
-    if (event.key === 'Enter') {
-      if (event.shiftKey) {
-        return; // Shift + Enter는 줄바꿈 허용
-      } else {
-        event.preventDefault(); // 그냥 Enter는 줄바꿈 막고
-        saveTextP();            // 즉시 저장!
-      }
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      saveTextP();
     }
   };
   
