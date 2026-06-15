@@ -662,8 +662,15 @@ function render() {
   document.getElementById('legend-row').innerHTML = types.map(t => `<div class="legend-item"><div class="legend-icon">${recSVG(t.type)}</div><span>${t.label}</span></div>`).join('');
 }
 
-function inlineSave(dayIdx, field, value) {
-  const cycle = cycles[currentViewIndex]; cycle.days[dayIdx][field] = value; render(); saveToCloud();
+// 🔄 몇 번째 주기(ci)의 몇 일차(dayIdx)인지 정확히 받도록 수정했습니다!
+function inlineSave(ci, dayIdx, field, value) {
+  // 현재 선택한 칸이 속한 진짜 주기를 찰떡같이 찾아갑니다.
+  const cycle = cycles[ci]; 
+  if (!cycle) return;
+  
+  cycle.days[dayIdx][field] = value; 
+  render(); 
+  saveToCloud();
 }
 
 function handleEmoKeyDown(event, dayIdx) {
@@ -685,7 +692,6 @@ function handleEmoKeyDown(event, dayIdx) {
     inlineSave(dayIdx, 'emo', matchedValue);
   }
 }
-
 function openTextP(ci, di, field, currentVal) {
   textEditCi = ci; textEditDi = di; textEditField = field;
   const sd = cycles[ci].startDate;
@@ -702,10 +708,8 @@ function openTextP(ci, di, field, currentVal) {
     }
   };
   
-  // 🖐️ 팝업창 베이지색 구역 터치 슬라이드로 배경 표 스크롤하기
+  // 🖐️ 팝업창 베이지색 구역 터치 슬라이드 (여기 얌전히 들어있어야 합니다!)
   const panel = document.getElementById('text-panel');
-  
-  // 🔥 드디어 진짜 범인(.scroll-x)의 이름을 정확하게 입력했습니다!
   const scrollContainer = document.querySelector('.scroll-x') || document.body;
   
   let touchStartX = 0;
@@ -721,8 +725,6 @@ function openTextP(ci, di, field, currentVal) {
     if (e.target.closest('#popup-input') || e.target.closest('.btn-chat-send')) return;
     const touchCurrentX = e.touches[0].clientX;
     const touchDiffX = touchStartX - touchCurrentX;
-    
-    // 이제 진짜 .scroll-x 상자의 가로 스크롤을 슥슥 밀어버립니다!
     scrollContainer.scrollLeft = scrollStartX + touchDiffX;
   };
   
@@ -753,7 +755,23 @@ function closeTrash() { document.getElementById('trash-overlay').classList.remov
 function restoreCycle(i) { const c = trash.splice(i, 1)[0]; delete c._deletedAt; cycles.push(c); cycles.sort((a,b) => (a.startDate||'').localeCompare(b.startDate||'')); currentViewIndex = cycles.indexOf(c); updateTrashBtn(); closeTrash(); render(); saveToCloud(); }
 function permDelete(i) { if (!confirm('영구 삭제 시 복구가 불가능합니다. 삭제할까요?')) return; trash.splice(i, 1); updateTrashBtn(); openTrash(); saveToCloud(); }
 
-function addCycle() { const today = new Date().toISOString().split('T')[0]; cycles.push({ startDate: today, days: makeDays() }); cycles.sort((a,b) => (a.startDate||'').localeCompare(b.startDate||'')); currentViewIndex = cycles.length - 1; render(); saveToCloud(); }
+function addCycle() { 
+  const today = new Date().toISOString().split('T')[0]; 
+  cycles.push({ startDate: today, days: makeDays() }); 
+  cycles.sort((a,b) => (a.startDate||'').localeCompare(b.startDate||'')); 
+  
+  // 💡 원래 있던 이 줄은 지우거나 덮어쓰셔도 됩니다.
+  currentViewIndex = cycles.length - 1; 
+  
+  // 🔽 [여기서부터] 우리가 방금 새로 추가한 치트키 위치입니다!
+  // 정렬(sort)이 다 끝난 진짜 마지막 타이밍에 최신 주기 인덱스를 다시 꽉 붙잡아줍니다.
+  currentViewIndex = cycles.length - 1; 
+  render(); 
+  // 🔼 [여기까지] 치트키 위치 끝!
+
+  saveToCloud(); // 원래 있던 저장 함수
+} // <-- 함수의 진짜 끝을 알리는 중괄호
+
 
 if (sessionStorage.getItem('nfp_authenticated') === 'true') {
   document.getElementById('auth-wall').style.display = 'none';
@@ -795,6 +813,29 @@ if (sessionStorage.getItem('nfp_authenticated') === 'true') {
     const touchDiffX = touchStartX - touchCurrentX; // 손가락 움직인 거리 계산
     
     // 계산된 거리만큼 상단 표(.scroll-x)를 원격으로 부드럽게 밀어버립니다!
+    scrollContainer.scrollLeft = scrollStartX + touchDiffX;
+  }, { passive: true });
+})();
+
+// 🖐️ 평소 상태에서 화면 아래쪽 흰 여백을 밀어도 표가 스크롤되게 만드는 독립 엔진 (이게 맨 밑으로 갈 놈입니다!)
+(function() {
+  let touchStartX = 0;
+  let scrollStartX = 0;
+  
+  document.body.addEventListener('touchstart', function(e) {
+    if (e.target.closest('.scroll-x') || e.target.closest('.inline-select') || e.target.closest('#text-panel')) return;
+    const scrollContainer = document.querySelector('.scroll-x');
+    if (!scrollContainer) return;
+    touchStartX = e.touches[0].clientX;
+    scrollStartX = scrollContainer.scrollLeft;
+  }, { passive: true });
+
+  document.body.addEventListener('touchmove', function(e) {
+    if (e.target.closest('.scroll-x') || e.target.closest('.inline-select') || e.target.closest('#text-panel')) return;
+    const scrollContainer = document.querySelector('.scroll-x');
+    if (!scrollContainer) return;
+    const touchCurrentX = e.touches[0].clientX;
+    const touchDiffX = touchStartX - touchCurrentX;
     scrollContainer.scrollLeft = scrollStartX + touchDiffX;
   }, { passive: true });
 })();
