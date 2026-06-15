@@ -3,14 +3,19 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="주기기록"/>
 <meta name="mobile-web-app-capable" content="yes"/>
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+
 <meta property="og:title" content="자연주기 기록표" />
 <meta property="og:description" content="나의 소중한 자연주기를 실시간으로 기록하고 관리하는 웹앱" />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=500" />
+
 <title>자연주기 기록</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=300;400;500&display=swap');
@@ -332,7 +337,6 @@ function makeDays() {
   return Array.from({length:DAYS}, () => ({type:'none', mucus_state:'', emo:'', memo:''}));
 }
 
-// ── 💡 데이터 유연 하이브리드 파싱 엔진 이식 완료 ──
 async function loadFromCloud() {
   showLoading(true);
   updateStatus('syncing');
@@ -350,7 +354,6 @@ async function loadFromCloud() {
     if (result.status === "success" && result.data) {
       let serverData = result.data;
       
-      // 구글 시트에 단일 객체({...}) 형태로 유실 없이 존재할 때 배열로 자동 변환 처리
       if (serverData && typeof serverData === 'object' && !Array.isArray(serverData)) {
         if (serverData.startDate) {
           cycles = [serverData]; 
