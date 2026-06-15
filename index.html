@@ -92,7 +92,6 @@ body {
 table { border-collapse: collapse; background: var(--surface); table-layout: fixed; width: max-content; }
 th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font-size: 11px; height: 38px; position: relative; }
 
-/* 좌측 고정열 레이어 정비 */
 .rl {
   width: var(--label); min-width: var(--label); padding: 6px 8px; text-align: left; font-size: 11px;
   color: var(--text-muted); background: #f7f7f4; white-space: nowrap;
@@ -115,14 +114,12 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 .td-emo { width: var(--cell); height: 34px; cursor: pointer; overflow: hidden; position: relative; z-index: 10; }
 .td-graph-wrap { padding: 0; border: none; background: #fffdf9; height: 44px; z-index: 1; }
 
-/* 점액, 메모 터치 전 자동 행갈이 고정 */
 .td-text-cell {
   width: var(--cell); max-width: var(--cell); min-height: 38px; height: auto; cursor: pointer; font-size: 10px; color: var(--text); padding: 4px 2px; line-height: 1.3;
   white-space: normal !important; word-wrap: break-word; word-break: break-all; display: table-cell; vertical-align: middle; z-index: 10;
 }
 .td-text-cell:active { background: #f5f5f5; }
 
-/* 투명 드롭다운 포커스 유도 */
 .inline-select {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 20;
   display: block; -webkit-appearance: menulist-button; appearance: menulist-button;
@@ -238,8 +235,8 @@ th, td { border: 0.5px solid var(--border); text-align: center; padding: 0; font
 </div>
 
 <script>
-// 🔗 새로운 무한 분할 행 방식의 Apps Script 웹앱 URL 적용 완료!
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM7goGB_yuBAkNk6RaNyzaVKVvNEcGXoBXL5yWgGuQT5ir6C_EaZ2yl6K3MOAHcZJFEQ/exec";
+// 발급받으신 주소를 변동 없이 그대로 안치했습니다.
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4V07xzsmw_MicaVwkrEj3OuYP927FFwRbYC1nGLIBmfVQbV4Ss25fCl1L2CoqgPBDHQ/exec";
 
 const DAYS = 32;
 const CELL = 34;
@@ -276,21 +273,22 @@ async function loadFromCloud() {
 
     const response = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "load" }) });
     const result = await response.json();
-    if (result.status === "success" && result.data) {
+    if (result.status === "success" && result.data && result.data.length > 0) {
       cycles = result.data;
       localStorage.setItem('nfp-v2', JSON.stringify(cycles));
       currentViewIndex = cycles.length - 1;
-      render();
     }
   } catch (e) {
     console.error("클라우드 데이터 로드 실패", e);
+  } finally {
     if (cycles.length === 0) {
       const today = new Date().toISOString().split('T')[0];
       cycles = [{ startDate: today, days: makeDays() }];
       currentViewIndex = 0;
-      render();
     }
-  } finally { showLoading(false); }
+    render();
+    showLoading(false);
+  }
 }
 
 async function saveToCloud() {
@@ -391,8 +389,6 @@ function graphSVG(days) {
 
 function addDays(dateStr, n) { const d = new Date(dateStr); d.setDate(d.getDate() + n); return d; }
 function fmt(dateStr, i) { if (!dateStr) return ''; const d = addDays(dateStr, i); return `${d.getMonth()+1}/${d.getDate()}`; }
-function isToday(dateStr, i) { if (!dateStr) return false; const t = new Date(); t.setHours(0,0,0,0); const d = addDays(dateStr, i); d.setHours(0,0,0,0); return d.getTime() === t.getTime(); }
-function isFuture(dateStr, i) { if (!dateStr) return false; const t = new Date(); t.setHours(0,0,0,0); const d = addDays(dateStr, i); d.setHours(0,0,0,0); return d > t; }
 
 function render() {
   let html = '';
