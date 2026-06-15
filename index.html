@@ -761,6 +761,45 @@ if (sessionStorage.getItem('nfp_authenticated') === 'true') {
 } else {
   document.getElementById('input-password').focus();
 }
+
+// 🖐️ 팝업창이 뜨기 전, 평소 상태에서 화면 아래쪽 흰 여백을 밀어도 표가 스크롤되게 만들기!
+(function() {
+  let touchStartX = 0;
+  let scrollStartX = 0;
+  
+  // 1. 화면 전체 바닥(body)에 손가락이 닿았을 때 작동 시작
+  document.body.addEventListener('touchstart', function(e) {
+    // 💡 단, 상단 표(.scroll-x) 자체를 직접 대고 밀거나, 드롭다운 메뉴를 만질 때는 이 원격 코드가 방해하지 않도록 방어막을 칩니다.
+    if (e.target.closest('.scroll-x') || e.target.closest('.inline-select') || e.target.closest('#text-panel')) {
+      return;
+    }
+    
+    // 스크롤을 담당하는 진짜 대장 상자(.scroll-x)를 찾습니다.
+    const scrollContainer = document.querySelector('.scroll-x');
+    if (!scrollContainer) return;
+    
+    touchStartX = e.touches[0].clientX;
+    scrollStartX = scrollContainer.scrollLeft;
+  }, { passive: true });
+
+  // 2. 손가락을 대고 좌우로 슥슥 비빌 때 (슬라이드)
+  document.body.addEventListener('touchmove', function(e) {
+    if (e.target.closest('.scroll-x') || e.target.closest('.inline-select') || e.target.closest('#text-panel')) {
+      return;
+    }
+    
+    const scrollContainer = document.querySelector('.scroll-x');
+    if (!scrollContainer) return;
+    
+    const touchCurrentX = e.touches[0].clientX;
+    const touchDiffX = touchStartX - touchCurrentX; // 손가락 움직인 거리 계산
+    
+    // 계산된 거리만큼 상단 표(.scroll-x)를 원격으로 부드럽게 밀어버립니다!
+    scrollContainer.scrollLeft = scrollStartX + touchDiffX;
+  }, { passive: true });
+})();
+
 </script>
 </body>
 </html>
+
